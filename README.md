@@ -1,5 +1,7 @@
 # 学习包索引
 
+> **在线体验**：<https://linjiaminaaa.github.io/network-learning/> —— 两个实验室都可以直接在浏览器里打开，无需安装。
+
 本工作区有两个独立的网络学习包，互不依赖，可各自单独使用：
 
 | 学习包 | 主题 | 入口 | 内容 |
@@ -50,7 +52,8 @@
 **2. 跑真实 socket 实验**
 
 ```powershell
-cd E:\DeepSeekHarmess\学习
+git clone https://github.com/linjiaminaaa/network-learning.git
+cd network-learning
 python tcp_udp_demo.py tcp       # connect/accept/send/recv、内核缓冲区
 python tcp_udp_demo.py udp       # 无连接 + 应用层丢包不重传
 python tcp_udp_demo.py framing   # 粘包/拆包 + 长度前缀分帧
