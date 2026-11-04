@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>网络学习包 · 交互实验室</title>
+<style>
+  :root{
+    --bg:#0a1220; --panel:#111c33; --line:#243355; --tx:#dbe6ff; --mut:#8fa2c9;
+    --cy:#4cc9f0; --gr:#6ee7a8; --or:#ffb86b;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0; min-height:100vh; background:
+      radial-gradient(900px 500px at 15% -10%, rgba(76,201,240,.16), transparent 60%),
+      radial-gradient(700px 400px at 90% 0%, rgba(110,231,168,.10), transparent 55%),
+      var(--bg);
+    color:var(--tx); font:15px/1.7 "Segoe UI","Microsoft YaHei",system-ui,sans-serif;
+    padding:56px 24px 40px;
+  }
+  main{max-width:1020px;margin:0 auto}
+  header h1{font-size:34px;margin:0 0 8px;letter-spacing:.5px}
+  header h1 span{color:var(--cy)}
+  header p{margin:0 0 40px;color:var(--mut);font-size:15px}
+  .cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:20px}
+  .card{
+    display:block;text-decoration:none;color:inherit;background:linear-gradient(180deg,#12203a,#0e1729);
+    border:1px solid var(--line);border-radius:16px;padding:26px 24px 22px;
+    transition:transform .18s ease,border-color .18s ease,box-shadow .18s ease;
+  }
+  .card:hover{transform:translateY(-3px);border-color:rgba(76,201,240,.55);box-shadow:0 14px 34px rgba(0,0,0,.42)}
+  .tag{display:inline-block;font-size:11.5px;letter-spacing:1px;color:var(--cy);
+    border:1px solid rgba(76,201,240,.35);background:rgba(76,201,240,.08);
+    padding:2px 9px;border-radius:99px;margin-bottom:14px}
+  .card h2{font-size:21px;margin:0 0 10px}
+  .card p{color:var(--mut);font-size:13.5px;margin:0 0 20px}
+  .go{color:var(--gr);font-size:13.5px;font-weight:600}
+  .links{margin-top:40px;border-top:1px solid var(--line);padding-top:26px}
+  .links h3{font-size:14px;color:var(--mut);font-weight:600;letter-spacing:1px;margin:0 0 12px}
+  .links ul{list-style:none;margin:0;padding:0;display:grid;gap:9px}
+  .links a{color:#a9c4f5;text-decoration:none;font-size:14px}
+  .links a:hover{color:var(--cy);text-decoration:underline}
+  footer{margin-top:44px;color:#5f7099;font-size:12.5px}
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <h1>网络学习<span>包</span></h1>
+    <p>两个可交互的离线实验室：传输层协议 · 游戏网络同步。零依赖、可下载、可离线。</p>
+  </header>
+
+  <section class="cards">
+    <a class="card" href="tcp-udp-lab.html">
+      <span class="tag">传输层</span>
+      <h2>TCP / UDP / QUIC 实验室</h2>
+      <p>报文头逐字段、三次握手 / 四次挥手、滑动窗口与丢包重传、rwnd / cwnd、三协议丢包对比，以及真实 pcap / pcapng 抓包分析。</p>
+      <span class="go">打开实验室 →</span>
+    </a>
+    <a class="card" href="game-sync/lockstep-lab.html">
+      <span class="tag">游戏同步</span>
+      <h2>帧同步 / 状态同步实验室</h2>
+      <p>确定性帧同步、状态快照与插值、回滚、延迟与丢包下的表现对比，共 8 个交互模块。</p>
+      <span class="go">打开实验室 →</span>
+    </a>
+  </section>
+
+  <section class="links">
+    <h3>配套资料</h3>
+    <ul>
+      <li><a href="https://github.com/linjiaminaaa/network-learning/blob/main/TCP-UDP-系统学习手册.md">TCP/UDP 系统学习手册（约 1000 行，16 章 + 附录）</a></li>
+      <li><a href="https://github.com/linjiaminaaa/network-learning/blob/main/game-sync/帧同步与状态同步系统学习手册.md">帧同步与状态同步系统学习手册</a></li>
+      <li><a href="https://github.com/linjiaminaaa/network-learning">GitHub 仓库（含 Python 实验脚本与调研清单）</a></li>
+    </ul>
+  </section>
+
+  <footer>MIT License · 纯静态页面，克隆后双击 HTML 即可离线使用</footer>
+</main>
+</body>
+</html>
