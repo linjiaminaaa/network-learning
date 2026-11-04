@@ -7,6 +7,13 @@
 | 一 | 传输层：TCP / UDP / QUIC | 本文件下方 | 交互实验室 + ~1000 行手册 + socket 实验脚本 + 同类项目调研 |
 | 二 | 游戏网络同步：**帧同步 / 状态同步** | [`game-sync/README.md`](game-sync/README.md) | 8 模块交互实验室 + 2056 行手册 + 真实 UDP 多进程演示 + 可核查的开源项目调研（28 个仓库） |
 
+## 截图
+
+| 传输层实验室（TCP / UDP / QUIC） | 游戏同步实验室（帧同步 / 状态同步） |
+|---|---|
+| ![传输层实验室](docs/screenshots/tcp-overview.png) | ![帧同步实验室](docs/screenshots/game-sync-overview.png) |
+| ![三次握手动画](docs/screenshots/tcp-handshake.png) | ![pcap 抓包分析](docs/screenshots/tcp-pcap.png) |
+
 ---
 
 # TCP / UDP 学习包
@@ -77,3 +84,7 @@ python tcp_udp_demo.py listen 9000   # 监听端口，配合 netstat/Wireshark
 - 实验室里滑动窗口、拥塞控制、QUIC 对比都是**简化模型**，用于建立直觉，数值不代表真实内核实现。
 - 手册中的平台默认值（TIME_WAIT 时长、延迟 ACK、Keepalive）随系统与版本变化，以本机 `sysctl` / 注册表 / 抓包为准。
 - 协议细节以 RFC 与实际内核行为为准：RFC 9293（TCP）、RFC 768（UDP）、RFC 6298（RTO）、RFC 5681（拥塞控制）、RFC 9000（QUIC）。
+
+## 许可
+
+[MIT License](LICENSE)。欢迎提 Issue / PR。
