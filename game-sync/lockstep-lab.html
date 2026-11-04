@@ -1,0 +1,3263 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>帧同步 / 状态同步 · 交互实验室</title>
+<style>
+/* =========================================================
+   帧同步 / 状态同步交互实验室 —— 深色专业主题
+   单文件 · 零依赖 · 离线可用
+   ========================================================= */
+:root{
+  --bg:#080d1a; --panel:#101a2f; --panel2:#16213d; --line:#243156; --line2:#31426e;
+  --txt:#dbe4ff; --mut:#8a96b8; --cy:#4cc9f0; --gr:#6ee7a8; --or:#ffb86b;
+  --rd:#ff6b8b; --pu:#b388ff; --ye:#ffe066;
+  --mono:ui-monospace,"Cascadia Code",Consolas,"Courier New",monospace;
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%}
+body{
+  background:radial-gradient(1200px 700px at 85% -15%,#18264e 0%,transparent 60%),
+             radial-gradient(900px 600px at -10% 110%,#131c3a 0%,transparent 55%),var(--bg);
+  color:var(--txt);font-family:system-ui,-apple-system,"Segoe UI","Microsoft YaHei",sans-serif;
+  display:flex;overflow:hidden;
+}
+::-webkit-scrollbar{width:10px;height:10px}
+::-webkit-scrollbar-thumb{background:#22304f;border-radius:6px}
+::-webkit-scrollbar-track{background:transparent}
+a{color:var(--cy)}
+b{color:#eaf1ff}
+code{font-family:var(--mono);background:#0c1424;border:1px solid var(--line);padding:1px 5px;
+  border-radius:5px;font-size:12.5px;color:#8fe3ff}
+pre{background:#0b1322;border:1px solid var(--line);border-radius:10px;padding:13px 15px;overflow-x:auto;
+  font-family:var(--mono);font-size:12.5px;line-height:1.7;color:#b9c8ea;margin:10px 0}
+pre code{background:none;border:none;padding:0;color:inherit;font-size:inherit}
+kbd{font-family:var(--mono);font-size:11px;background:#16213d;border:1px solid var(--line);
+  border-bottom-width:2px;border-radius:4px;padding:0 5px;color:#cfe0ff}
+
+/* ---------------- 侧边栏 ---------------- */
+.side{width:248px;flex:none;height:100vh;border-right:1px solid var(--line);
+  background:rgba(8,13,26,.82);backdrop-filter:blur(10px);display:flex;flex-direction:column;padding:20px 14px 12px}
+.brand{display:flex;align-items:center;gap:10px;padding:0 6px}
+.brand .logo{width:36px;height:36px;border-radius:11px;flex:none;
+  background:linear-gradient(135deg,#4cc9f0,#6ee7a8);display:grid;place-items:center;
+  color:#06101f;font-weight:800;font-size:12px;letter-spacing:-.5px}
+.brand b{display:block;font-size:14px;letter-spacing:.4px}
+.brand span{display:block;font-size:11px;color:var(--mut);margin-top:2px}
+.nav{display:flex;flex-direction:column;gap:3px;margin-top:20px;overflow-y:auto}
+.nav a{display:flex;align-items:center;gap:9px;padding:8px 10px;border-radius:9px;color:#a7b3d4;
+  text-decoration:none;font-size:13px;border:1px solid transparent;transition:.15s}
+.nav a:hover{background:#131d36;color:#e6edff}
+.nav a.on{background:linear-gradient(90deg,rgba(76,201,240,.16),rgba(76,201,240,.02));
+  border-color:rgba(76,201,240,.35);color:#bfeaff}
+.nav a .ic{width:18px;text-align:center;font-size:12.5px;opacity:.9;font-family:var(--mono)}
+.side-foot{margin-top:auto;padding:10px 6px 0;border-top:1px solid var(--line);
+  font-size:11px;color:var(--mut);line-height:1.8}
+
+/* ---------------- 主区 ---------------- */
+main{flex:1;height:100vh;overflow-y:auto;scroll-behavior:smooth}
+.page{display:none;max-width:1180px;margin:0 auto;padding:34px 42px 96px}
+.page.on{display:block;animation:fade .26s ease}
+@keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+h1{font-size:30px;margin:6px 0 10px;letter-spacing:.4px;
+  background:linear-gradient(90deg,#eaf4ff,#7fd8ff 60%,#8ff0c8);-webkit-background-clip:text;
+  background-clip:text;color:transparent}
+h2{font-size:20px;margin:30px 0 10px;padding-left:12px;border-left:4px solid var(--cy);line-height:1.35}
+h3{font-size:15.5px;margin:22px 0 10px;color:#c9d5f8;letter-spacing:.3px}
+h4{font-size:13px;margin:0 0 10px;color:#aab8e2;letter-spacing:.5px;font-weight:600}
+p{line-height:1.8;color:#c2cce8;font-size:14px}
+.muted{color:var(--mut);font-size:13px;line-height:1.78}
+.small{font-size:12px;color:var(--mut);line-height:1.7}
+.mono{font-family:var(--mono)}
+.hero{margin:4px 0 26px;padding:24px 26px;border-radius:18px;border:1px solid var(--line);
+  background:radial-gradient(760px 300px at 10% 0%,rgba(76,201,240,.13),transparent 62%),
+             radial-gradient(620px 320px at 92% 110%,rgba(110,231,168,.10),transparent 60%),#0d1628}
+.hero-kicker{font-size:11.5px;letter-spacing:2.2px;color:var(--cy);text-transform:uppercase;margin-bottom:6px}
+.hero-sub{font-size:14px;color:#b6c3e6;max-width:820px;line-height:1.85;margin:8px 0 14px}
+.hero-tags{display:flex;gap:8px;flex-wrap:wrap}
+.hero-tags span{font-size:11px;color:#9fd8ee;border:1px solid rgba(76,201,240,.28);
+  background:rgba(76,201,240,.07);padding:4px 10px;border-radius:20px}
+
+/* ---------------- 通用组件 ---------------- */
+.card{background:linear-gradient(180deg,#111b32,#0e1626);border:1px solid var(--line);
+  border-radius:14px;padding:16px 18px;margin:12px 0}
+.card.tight{padding:12px 14px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.grid2>.card,.grid3>.card{margin:0}
+.split2{display:grid;grid-template-columns:1.25fr .75fr;gap:16px;align-items:start}
+.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.toolbar{display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap;margin:4px 0 12px}
+.btn{cursor:pointer;font:inherit;font-size:13px;padding:7px 14px;border-radius:9px;border:1px solid var(--line);
+  background:#152039;color:#c9d6fa;transition:.15s;user-select:none}
+.btn:hover{background:#1b2948;border-color:#33436f}
+.btn:active{transform:translateY(1px)}
+.btn.primary{background:linear-gradient(180deg,#1d6f96,#155a7d);border-color:#2b8fbd;color:#e7f7ff}
+.btn.primary:hover{background:linear-gradient(180deg,#2484b0,#1a6b93)}
+.btn.ghost{background:transparent}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+.seg{display:inline-flex;background:#0d1627;border:1px solid var(--line);border-radius:10px;padding:3px;gap:2px;flex-wrap:wrap}
+.seg button{cursor:pointer;font:inherit;font-size:12px;padding:5px 11px;border:none;border-radius:7px;
+  background:transparent;color:#93a1c6;transition:.15s;white-space:nowrap}
+.seg button:hover{color:#dce8ff}
+.seg button.on{background:#1e2c52;color:#9fe7ff;box-shadow:inset 0 0 0 1px rgba(76,201,240,.28)}
+.chip{font-family:var(--mono);font-size:11.5px;padding:3px 9px;border-radius:20px;border:1px solid var(--line);
+  background:#101b31;color:#a8b8e2;display:inline-block}
+.chip.g{color:var(--gr);border-color:rgba(110,231,168,.35);background:rgba(110,231,168,.08)}
+.chip.o{color:var(--or);border-color:rgba(255,184,107,.35);background:rgba(255,184,107,.08)}
+.chip.r{color:var(--rd);border-color:rgba(255,107,139,.35);background:rgba(255,107,139,.08)}
+.chip.c{color:var(--cy);border-color:rgba(76,201,240,.35);background:rgba(76,201,240,.08)}
+.ctl{display:flex;flex-direction:column;gap:5px;min-width:170px;flex:1 1 170px;max-width:320px}
+.ctl label{display:flex;justify-content:space-between;align-items:baseline;gap:12px;
+  font-size:11.5px;color:var(--mut);letter-spacing:.3px}
+.ctl label b{font-family:var(--mono);font-size:12px;color:var(--cy);font-weight:600}
+input[type=range]{-webkit-appearance:none;appearance:none;width:100%;height:4px;border-radius:3px;
+  background:linear-gradient(90deg,#2b6a86,#22304f);outline:none;cursor:pointer}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;height:14px;border-radius:50%;
+  background:var(--cy);border:2px solid #071021;box-shadow:0 0 0 3px rgba(76,201,240,.12);cursor:pointer}
+input[type=range]::-moz-range-thumb{width:14px;height:14px;border-radius:50%;background:var(--cy);
+  border:2px solid #071021;cursor:pointer}
+.switch{display:inline-flex;align-items:center;gap:8px;font-size:12.5px;color:#c2cce8;cursor:pointer;
+  user-select:none;padding:6px 10px;border:1px solid var(--line);border-radius:9px;background:#0f1729}
+.switch input{appearance:none;-webkit-appearance:none;width:34px;height:18px;border-radius:10px;
+  background:#22304f;position:relative;transition:.18s;cursor:pointer;margin:0;flex:none}
+.switch input::after{content:"";position:absolute;top:2px;left:2px;width:14px;height:14px;border-radius:50%;
+  background:#8a96b8;transition:.18s}
+.switch input:checked{background:rgba(76,201,240,.4)}
+.switch input:checked::after{left:18px;background:var(--cy)}
+.switch:has(input:checked){border-color:rgba(76,201,240,.45);color:#d7f2ff;background:rgba(76,201,240,.07)}
+.stage{position:relative;background:#0b1322;border:1px solid var(--line);border-radius:12px;
+  overflow:hidden;margin:10px 0}
+.stage canvas{display:block;width:100%;height:auto}
+.legend{display:flex;gap:16px;flex-wrap:wrap;font-size:11.5px;color:var(--mut);margin:8px 2px}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:3px;flex:none}
+.legend i.line{width:18px;height:3px;border-radius:2px}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(138px,1fr));gap:9px;margin:12px 0}
+.stat{background:#0d1628;border:1px solid var(--line);border-radius:10px;padding:9px 11px;min-width:0}
+.stat i{display:block;font-style:normal;font-size:10.5px;color:var(--mut);letter-spacing:.5px;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.stat b{display:block;font-family:var(--mono);font-size:16px;color:#cfe0ff;margin-top:4px;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.stat b.g{color:var(--gr)} .stat b.r{color:var(--rd)} .stat b.o{color:var(--or)} .stat b.c{color:var(--cy)}
+.stat b.p{color:var(--pu)} .stat b.sm{font-size:12.5px;line-height:1.6}
+.bar{height:8px;border-radius:6px;background:#0c1526;border:1px solid #22304f;overflow:hidden}
+.bar>i{display:block;height:100%;width:0;border-radius:4px;
+  background:linear-gradient(90deg,#2b8fbd,#4cc9f0);transition:width .1s linear}
+.bar>i.g{background:linear-gradient(90deg,#2f9e6f,#6ee7a8)}
+.bar>i.o{background:linear-gradient(90deg,#b07325,#ffb86b)}
+.bar>i.r{background:linear-gradient(90deg,#a12c4a,#ff6b8b)}
+.bar>i.p{background:linear-gradient(90deg,#6f4bd8,#b388ff)}
+.note{border-left:3px solid var(--or);background:rgba(255,184,107,.06);padding:9px 14px;
+  border-radius:0 8px 8px 0;font-size:12.5px;line-height:1.8;color:#dcc9ab;margin:12px 0}
+.note.cy{border-color:var(--cy);background:rgba(76,201,240,.06);color:#b3d9e8}
+.note.rd{border-color:var(--rd);background:rgba(255,107,139,.06);color:#e8b3c1}
+.takeaway{margin-top:16px;padding:11px 15px;border-radius:10px;border:1px dashed rgba(110,231,168,.35);
+  background:rgba(110,231,168,.05);font-size:12.8px;line-height:1.82;color:#bfe8d2}
+.takeaway b{color:#9df0c4}
+.formula{font-family:var(--mono);font-size:12px;line-height:1.85;color:#a9c6e8;
+  background:#0a1322;border:1px solid var(--line);border-radius:9px;padding:10px 12px;margin:8px 0}
+.formula b{color:var(--cy);font-weight:600}
+.formula .m{color:var(--gr)}
+details{border:1px solid var(--line);border-radius:10px;background:#0e1729;padding:0 14px;margin:8px 0}
+details summary{cursor:pointer;padding:10px 0;font-size:13px;color:#c8d6fa;list-style:none;
+  display:flex;gap:8px;align-items:center}
+details summary::before{content:"▸";color:var(--cy);font-size:10px;transition:.2s}
+details[open] summary::before{transform:rotate(90deg)}
+details[open] summary{border-bottom:1px solid var(--line);margin-bottom:4px}
+details .inner{padding:6px 0 10px;font-size:12.5px;line-height:1.8;color:#b9c6e8}
+.table{width:100%;border-collapse:collapse;font-size:12.5px;margin:10px 0}
+.table th,.table td{border:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top;line-height:1.6}
+.table th{background:#16213d;color:#aebde8;font-weight:600;white-space:nowrap;font-size:12px}
+.table tr:nth-child(even) td{background:rgba(255,255,255,.014)}
+.table td.y{color:var(--gr)} .table td.n{color:var(--rd)} .table td.mono{font-family:var(--mono);font-size:11.5px}
+.tablescroll{max-height:320px;overflow:auto;border:1px solid var(--line);border-radius:10px}
+.tablescroll table{margin:0;border:none}
+.tablescroll thead th{position:sticky;top:0;z-index:2;background:#16213d}
+.tag{display:inline-block;font-size:10.5px;padding:1px 7px;border-radius:12px;border:1px solid var(--line2);
+  color:#9fb0d8;margin-left:6px;vertical-align:1px}
+.tag.c{color:#9fe7ff;border-color:rgba(76,201,240,.4)}
+.tag.g{color:#9df0c4;border-color:rgba(110,231,168,.4)}
+.tag.o{color:#ffd3a0;border-color:rgba(255,184,107,.4)}
+.tag.r{color:#ffb3c4;border-color:rgba(255,107,139,.4)}
+
+/* ---------------- 哈希表 ---------------- */
+.hash-wrap{margin-top:4px}
+.hash-table{width:100%;border-collapse:collapse;font-family:var(--mono);font-size:11px}
+.hash-table th{position:sticky;top:0;background:#13203a;color:#9fb0d8;font-weight:600;
+  padding:6px 7px;border-bottom:1px solid var(--line);text-align:right;white-space:nowrap;z-index:2}
+.hash-table th:first-child,.hash-table td:first-child{text-align:left}
+.hash-table td{padding:4px 7px;border-bottom:1px solid #16203a;text-align:right;color:#a9b9dd;white-space:nowrap}
+.hash-table tr:hover td{background:#111c33}
+.hash-table td.bad{color:var(--rd);background:rgba(255,107,139,.07)}
+.hash-table td.good{color:var(--gr)}
+.hash-table td.mark{color:var(--ye);font-size:11px}
+.hash-box{max-height:260px;overflow:auto;border:1px solid var(--line);border-radius:10px;background:#0a1322}
+
+/* ---------------- 客户端进度卡 ---------------- */
+.clientcards{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:12px 0}
+.ccard{background:#0d1628;border:1px solid var(--line);border-radius:10px;padding:9px 11px}
+.ccard .top{display:flex;justify-content:space-between;align-items:center;font-size:11.5px;color:#b9c6e8;margin-bottom:6px}
+.ccard .top b{font-family:var(--mono);font-size:11.5px}
+.ccard .sub{font-family:var(--mono);font-size:10.5px;color:var(--mut);margin-top:5px;display:flex;justify-content:space-between}
+.ccard.wait{border-color:rgba(255,107,139,.45);background:rgba(255,107,139,.05)}
+.ccard.run{border-color:rgba(110,231,168,.32)}
+
+/* ---------------- 测验 ---------------- */
+.quiz-q{padding:12px 0;border-bottom:1px dashed #1e2947}
+.quiz-q:last-child{border-bottom:none}
+.quiz-q .qt{font-size:13.5px;margin-bottom:8px;color:#cfdcfb;line-height:1.65}
+.quiz-q .opts{display:flex;flex-direction:column;gap:6px}
+.quiz-q .opts button{cursor:pointer;font:inherit;font-size:12.5px;padding:7px 12px;border-radius:8px;
+  border:1px solid var(--line);background:#101a2e;color:#9fadcf;text-align:left;transition:.13s}
+.quiz-q .opts button:hover{border-color:#33436f;color:#dce8ff}
+.quiz-q .opts button.sel{border-color:rgba(76,201,240,.5);background:rgba(76,201,240,.13);color:#bff0ff}
+.quiz-q .opts button.ok{border-color:rgba(110,231,168,.55);background:rgba(110,231,168,.12);color:#b7f5d3}
+.quiz-q .opts button.bad{border-color:rgba(255,107,139,.55);background:rgba(255,107,139,.11);color:#ffc1ce}
+.qfb{font-size:12.5px;line-height:1.75;color:#a8b8e2;margin-top:8px;padding:8px 11px;
+  background:#0c1526;border:1px dashed #2c3b63;border-radius:8px}
+.qfb.ok{border-color:rgba(110,231,168,.4);color:#bfe8d2}
+.qfb.bad{border-color:rgba(255,107,139,.4);color:#f0c3ce}
+.scorebar{display:flex;gap:14px;align-items:center;flex-wrap:wrap;margin-top:14px;padding:12px 15px;
+  border-radius:12px;border:1px solid var(--line);background:#0d1628}
+.scorebar .big{font-family:var(--mono);font-size:26px;color:var(--cy)}
+.term-filter{font:inherit;font-size:12.5px;padding:7px 10px;border-radius:8px;border:1px solid var(--line);
+  background:#0c1526;color:#cfe0ff;outline:none;width:min(280px,100%)}
+.term-filter:focus{border-color:rgba(76,201,240,.5)}
+
+@media (max-width:1200px){
+  .page{padding:26px 24px 90px}
+  .split2{grid-template-columns:1fr}
+}
+@media (max-width:900px){
+  body{flex-direction:column;overflow:auto}
+  .side{width:100%;height:auto;flex-direction:row;align-items:center;flex-wrap:wrap;gap:6px;padding:10px}
+  .brand{display:none}
+  .nav{flex-direction:row;overflow-x:auto;margin:0;gap:2px;padding-bottom:2px}
+  .nav a{white-space:nowrap;padding:6px 9px;font-size:12px}
+  .side-foot{display:none}
+  main{height:auto;overflow:visible}
+  .page{padding:18px 14px 70px;max-width:none}
+  .grid2,.grid3,.clientcards{grid-template-columns:1fr}
+  h1{font-size:24px}
+}
+</style>
+</head>
+<body>
+<aside class="side">
+  <div class="brand">
+    <div class="logo">FS</div>
+    <div><b>帧同步实验室</b><span>网络同步 · 交互可视化</span></div>
+  </div>
+  <nav class="nav" id="nav">
+    <a href="#overview" data-p="overview" class="on"><span class="ic">◈</span>两条路线总览</a>
+    <a href="#lockstep" data-p="lockstep"><span class="ic">⇄</span>帧同步流水线</a>
+    <a href="#determinism" data-p="determinism"><span class="ic">⚖</span>确定性实验</a>
+    <a href="#catchup" data-p="catchup"><span class="ic">⏩</span>追帧与断线重连</a>
+    <a href="#statesync" data-p="statesync"><span class="ic">◐</span>状态同步</a>
+    <a href="#bandwidth" data-p="bandwidth"><span class="ic">▤</span>带宽对比</a>
+    <a href="#rollback" data-p="rollback"><span class="ic">↺</span>回滚重放</a>
+    <a href="#quiz" data-p="quiz"><span class="ic">✓</span>自测与术语</a>
+  </nav>
+  <div class="side-foot">
+    单文件 · 纯本地 · 零依赖<br>
+    配套《帧同步与状态同步系统学习手册》<br>
+    <kbd>Alt</kbd>+<kbd>←</kbd>/<kbd>→</kbd> 切换模块
+  </div>
+</aside>
+
+<main id="main">
+
+<!-- ================= ① 两条路线总览 ================= -->
+<section class="page on" id="overview">
+  <div class="hero">
+    <div class="hero-kicker">Game Sync Lab · Lockstep vs State Sync</div>
+    <h1>两条路线，一场 3 人战斗</h1>
+    <p class="hero-sub">同一场 3 人战斗，用两条同轴时间线并排看：<b>帧同步</b>让每个客户端各自跑逻辑，服务器只转发「谁按了什么」；<b>状态同步</b>让服务器算完再广播「世界长什么样」。拖动时间轴或点播放，跟着每一跳消息走一遍，再往下逐个拆开。</p>
+    <div class="hero-tags"><span>8 个交互模块</span><span>定点数真实现</span><span>0 依赖单文件</span><span>可离线使用</span></div>
+  </div>
+
+  <h2>同轴对比：两种消息流怎么走</h2>
+  <div class="card">
+    <div class="toolbar">
+      <button class="btn primary" id="ovPlay">▶ 播放</button>
+      <button class="btn" id="ovStep">下一事件</button>
+      <button class="btn" id="ovReset">重置</button>
+      <div class="seg" id="ovSpeed"><button data-v="0.5">0.5×</button><button data-v="1" class="on">1×</button><button data-v="2">2×</button></div>
+      <div class="ctl" style="max-width:420px">
+        <label>模拟时间 <b id="ovTimeLabel">0 ms</b></label>
+        <input type="range" id="ovTime" min="0" max="1000" value="0" step="1">
+      </div>
+    </div>
+    <div class="stage"><canvas id="ovCanvas"></canvas></div>
+    <div class="legend">
+      <span><i style="background:#4cc9f0"></i>输入上行（谁按了什么）</span>
+      <span><i style="background:#6ee7a8"></i>帧/快照下行</span>
+      <span><i style="background:#ffb86b"></i>服务器处理</span>
+      <span><i style="background:#ff6b8b"></i>客户端等待</span>
+      <span><i style="background:#b388ff"></i>直接变化的画面</span>
+    </div>
+    <div class="stats">
+      <div class="stat"><i>当前时间</i><b id="ovStatTime">0 ms</b></div>
+      <div class="stat"><i>帧同步已确认帧</i><b id="ovStatLf" class="c">0 / 6</b></div>
+      <div class="stat"><i>状态同步画面落后</i><b id="ovStatSs" class="o">—</b></div>
+      <div class="stat"><i>已发出消息</i><b id="ovStatMsg">0</b></div>
+    </div>
+    <p class="muted">参数固定为：10 Hz 逻辑帧（每帧 100 ms）、3 个客户端（A 单向 55 ms / B 75 ms / C 145 ms）。拖动上方滑块可以暂停并逐帧观察；两条时间线共用同一根时间尺，方便对齐比较。</p>
+  </div>
+
+  <div class="grid2">
+    <div class="card">
+      <h4>帧同步：传「指令」</h4>
+      <p class="muted">客户端各自模拟。服务器只做两件事：收齐同一帧所有玩家的输入、把这一帧的完整输入集合广播出去。三端算出相同状态，带宽与实体数无关。</p>
+      <div class="formula">客户端 <b>边算边传输入</b> → 服务器 <b>凑齐再广播</b> → 三端 <b>各自执行</b><br>
+      状态一致靠：<span class="m">确定性 + 同样的输入集合</span></div>
+    </div>
+    <div class="card">
+      <h4>状态同步：传「结果」</h4>
+      <p class="muted">服务器是唯一权威：跑逻辑、出快照，客户端只负责发输入与渲染。快照丢了没关系，下一份覆盖；但带宽随实体数增长，客户端看到的世界总是「过去时」。</p>
+      <div class="formula">客户端 <b>发输入</b> → 服务器 <b>模拟+快照</b> → 客户端 <b>渲染快照</b><br>
+      一致靠：<span class="m">服务器权威 + 快照覆盖</span></div>
+    </div>
+  </div>
+  <div class="takeaway"><b>你现在看到的是：</b>两条路线在时间线上的骨架 —— 帧同步是「输入上行 + 帧确认下行，最慢者拖住全房间」，状态同步是「输入上行 + 快照下行，每个人看到的都是服务器的旧画面」。接下来逐个模块拆机制。</div>
+</section>
+
+<!-- ================= ② 帧同步流水线 ================= -->
+<section class="page" id="lockstep">
+  <h2>帧同步流水线：最慢的人决定所有人</h2>
+  <p class="muted">一帧的完整流程是「采集输入 → 上行 → 服务器归并 → 凑齐后广播 → 各端执行」。UDP 会丢包，而帧同步不能丢输入，所以每个输入包都携带最近 3 帧的冗余输入；只要有一个玩家的输入没到齐，整房间就停在这一帧 —— 这叫<b>等帧卡顿</b>。</p>
+  <div class="card">
+    <div class="toolbar">
+      <button class="btn primary" id="lsRun">▶ 运行</button>
+      <button class="btn" id="lsStep">单步</button>
+      <button class="btn" id="lsReset">重置</button>
+      <div class="ctl"><label>网络延迟（单向）<b id="lsDelayV">40 ms</b></label><input type="range" id="lsDelay" min="0" max="200" value="40" step="5"></div>
+      <div class="ctl"><label>丢包率<b id="lsLossV">10%</b></label><input type="range" id="lsLoss" min="0" max="50" value="10" step="1"></div>
+      <span class="chip" id="lsRunningChip">已暂停</span>
+    </div>
+    <div class="stage"><canvas id="lsCanvas"></canvas></div>
+    <div class="legend">
+      <span><i style="background:#4cc9f0"></i>输入包（带 3 帧冗余）</span>
+      <span><i style="background:#6ee7a8"></i>执行确认广播</span>
+      <span><i style="background:#ff6b8b"></i>丢包 / 卡顿</span>
+      <span><i style="background:#ffe066"></i>服务器归并</span>
+    </div>
+    <div class="stats">
+      <div class="stat"><i>服务器已确认帧</i><b id="lsFrame" class="c">0</b></div>
+      <div class="stat"><i>累计卡顿</i><b id="lsStall" class="r">0 ms</b></div>
+      <div class="stat"><i>当前等待</i><b id="lsWait" class="o">—</b></div>
+      <div class="stat"><i>冗余帧补回</i><b id="lsRedun" class="g">0</b></div>
+      <div class="stat"><i>上行带宽</i><b id="lsUp" class="sm">—</b></div>
+      <div class="stat"><i>下行带宽</i><b id="lsDown" class="sm">—</b></div>
+    </div>
+    <div class="clientcards" id="lsClients"></div>
+    <p class="muted" id="lsConc">点「运行」开始：观察输入包上行、服务器按帧归并、确认包下行。</p>
+    <div class="takeaway"><b>你现在看到的是：</b>每帧都必须等所有客户端的输入到齐才能广播。C 的延迟更高，A、B 只能干等 —— <b>最慢的人决定所有人</b>；丢包时，后续输入包携带前几帧的冗余，把缺的帧补回来，所以短时间内连续丢包不会停，连续丢超过冗余窗口才会卡死等待重传。</div>
+  </div>
+</section>
+
+<!-- ================= ③ 确定性实验 ================= -->
+<section class="page" id="determinism">
+  <h2>确定性实验：同一套物理，三个客户端各跑一遍</h2>
+  <p class="muted">下面的弹球物理（重力 + 弹性碰撞 + 墙壁反弹）逐帧推进。左边三个客户端用浮点：<b>A</b> 双精度标准实现，<b>B</b> 单精度（模拟不同平台/引擎的 float），<b>C</b> 双精度但把 dt 写成十进制常量 <code>0.0166667</code>（手写常量或单位换算的精度差，与 1/60 只差 3.3×10⁻⁸）。右边三个客户端用 <b>Q16.16 定点整数</b>实现同一套物理。每帧对量化后的状态做 FNV-1a 哈希，逐帧比对。</p>
+  <div class="card">
+    <div class="toolbar">
+      <button class="btn primary" id="dtPlay">▶ 播放</button>
+      <button class="btn" id="dtStep">单步</button>
+      <button class="btn" id="dtReset">重置</button>
+      <div class="seg" id="dtSpeed"><button data-v="1">1×</button><button data-v="2" class="on">2×</button><button data-v="4">4×</button></div>
+      <span class="chip c" id="dtFrameChip">帧 0</span>
+      <span class="chip" id="dtDivChip">首次分歧：—</span>
+    </div>
+    <div class="grid2">
+      <div>
+        <h4>float：A 双精度 / B 单精度 / C dt 常量误差</h4>
+        <div class="stage"><canvas id="dtFloat"></canvas></div>
+        <div class="legend">
+          <span><i style="background:#4cc9f0"></i>A double</span>
+          <span><i style="background:#ffb86b"></i>B float32</span>
+          <span><i style="background:#b388ff"></i>C double + dt 常量</span>
+        </div>
+      </div>
+      <div>
+        <h4>Q16.16 定点：三个客户端同一套整数运算</h4>
+        <div class="stage"><canvas id="dtFixed"></canvas></div>
+        <div class="legend">
+          <span><i style="background:#6ee7a8"></i>三端状态完全重叠（逐位一致）</span>
+        </div>
+      </div>
+    </div>
+    <div class="split2">
+      <div>
+        <h4>逐帧状态哈希（FNV-1a，量化到 1/8 px）</h4>
+        <div class="hash-box"><table class="hash-table" id="dtHashTable">
+          <thead><tr><th>帧</th><th>A double</th><th>B float32</th><th>C dt 常量</th><th>定点</th></tr></thead>
+          <tbody id="dtHashBody"></tbody>
+        </table></div>
+      </div>
+      <div>
+        <h4>观察指标</h4>
+        <div class="stats" style="grid-template-columns:1fr 1fr">
+          <div class="stat"><i>A↔B 首次哈希不同</i><b id="dtDivAB" class="o">—</b></div>
+          <div class="stat"><i>A↔C 首次哈希不同</i><b id="dtDivAC" class="o">—</b></div>
+          <div class="stat"><i>定点三端首次不同</i><b id="dtDivFix" class="g">—</b></div>
+          <div class="stat"><i>当前帧</i><b id="dtFrame2">0</b></div>
+        </div>
+        <p class="small" id="dtHint">按「单步」逐帧推进，注意哈希列第一次变红的帧号。</p>
+        <details>
+          <summary>看实现：Q16.16 乘法 / 除法 / 开方</summary>
+          <div class="inner">
+            <pre><code>ONE = 1 &lt;&lt; 16            // 65536
+mul(a,b) = (a*b) &gt;&gt; 16    // 中间值 64 位，32 位装结果
+div(a,b) = (a&lt;&lt;16) / b    // b=0 必须显式定义
+sqrt(x)  = isqrt(x &lt;&lt; 16) // 整数牛顿迭代 / 逐位开方
+// 三个客户端执行同一份整数代码 → 跨平台逐位一致；
+// 浮点版则受精度、常量与运算顺序影响。</code></pre>
+          </div>
+        </details>
+      </div>
+    </div>
+    <div class="takeaway"><b>你现在看到的是：</b>左图三条彩色轨迹从完全重叠到分叉，右图三条轨迹始终重合。注意哈希在肉眼还看不出差别时就已经不同了 —— 所以帧同步的 desync 检测靠逐帧哈希，而不是靠眼睛。</div>
+  </div>
+</section>
+
+<!-- ================= ④ 追帧与断线重连 ================= -->
+<section class="page" id="catchup">
+  <h2>追帧与断线重连：全量快照 + 输入回放</h2>
+  <p class="muted">帧同步客户端掉线后错过了 N 帧输入，不能「凭空重算」。服务器先下发一份<b>全量快照</b>（完整实体状态 + 随机数状态 + 种子 + 计时器），再补发缺失帧的输入集合；客户端从快照帧开始跑，一边以数倍速重放追赶，一边等实时网络恢复。追帧期间通常禁用渲染插值。</p>
+  <div class="card">
+    <div class="toolbar">
+      <button class="btn primary" id="cuPlay">▶ 重连并追帧</button>
+      <button class="btn" id="cuReset">重置</button>
+      <div class="seg" id="cuSpeed"><button data-v="2" class="on">2×</button><button data-v="4">4×</button><button data-v="8">8×</button></div>
+      <div class="ctl"><label>掉线期间错过帧数<b id="cuBehindV">240 帧</b></label><input type="range" id="cuBehind" min="0" max="300" value="240" step="10"></div>
+      <span class="chip" id="cuState">未重连</span>
+    </div>
+    <div class="stage"><canvas id="cuCanvas"></canvas></div>
+    <div class="stats">
+      <div class="stat"><i>服务器当前帧</i><b id="cuServer" class="c">0</b></div>
+      <div class="stat"><i>客户端当前帧</i><b id="cuClient">0</b></div>
+      <div class="stat"><i>落后帧数</i><b id="cuGap" class="r">0</b></div>
+      <div class="stat"><i>追帧速度</i><b id="cuRate" class="o">—</b></div>
+      <div class="stat"><i>本次已重放</i><b id="cuReplayed" class="g">0</b></div>
+      <div class="stat"><i>预计追上</i><b id="cuEta" class="sm">—</b></div>
+    </div>
+    <div class="row" style="gap:12px;margin:4px 0 2px"><span class="small" style="width:88px">追帧进度</span>
+      <div class="bar" style="flex:1"><i id="cuBar" class="g"></i></div><span class="chip g" id="cuPct">0%</span>
+    </div>
+    <div class="formula">全量快照大小 = 头部 8 B + 实体数 × 16 B；本场景 300 实体 ≈ <b>4.8 KB</b>（一次性）<br>
+    追上所需真实时间 ≈ 落后帧数 / ((追帧倍速 − 1) × 60) 秒。<span class="m">倍速越高越容易引起掉帧，工程上要设预算上限（如每帧最多追 8 帧）。</span></div>
+    <p class="muted" id="cuConc">点「重连并追帧」：服务器先发快照，客户端从快照帧开始以倍速重放，逐步缩小与实时帧的差距。</p>
+    <div class="takeaway"><b>你现在看到的是：</b>追帧不是「快进画面」，而是连续执行已知帧的 <code>step()</code>、不渲染中间帧。倍速越高追得越快，但单帧时间预算有限；真实实现通常限制每帧追帧数，先保证「不再落后」，再慢慢追平。</div>
+  </div>
+</section>
+
+<!-- ================= ⑤ 状态同步 ================= -->
+<section class="page" id="statesync">
+  <h2>状态同步：权威快照 + 预测 / 校正 / 插值</h2>
+  <p class="muted">服务器以 20 Hz 跑权威逻辑，每 50 ms 广播一次快照；客户端只发输入、渲染快照。纯快照渲染下，从按键到看到结果是 <code>RTT/2 + 半个 tick</code>；打开预测后本地立即响应，但收到权威快照时可能被校正回弹；打开插值后画面平滑，代价是看到更久以前的世界。</p>
+  <div class="card">
+    <div class="toolbar">
+      <button class="btn primary" id="ssRun">▶ 运行</button>
+      <button class="btn" id="ssStep">单步 +100ms</button>
+      <button class="btn" id="ssReset">重置</button>
+      <label class="switch"><input type="checkbox" id="ssPredict" checked>客户端预测</label>
+      <label class="switch"><input type="checkbox" id="ssCorrect" checked>服务器校正</label>
+      <label class="switch"><input type="checkbox" id="ssInterp">插值缓冲</label>
+      <div class="ctl"><label>RTT<b id="ssRttV">120 ms</b></label><input type="range" id="ssRtt" min="0" max="300" value="120" step="10"></div>
+      <div class="ctl"><label>抖动<b id="ssJitterV">20 ms</b></label><input type="range" id="ssJitter" min="0" max="120" value="20" step="5"></div>
+    </div>
+    <div class="stats">
+      <div class="stat"><i>输入→画面延迟（估算）</i><b id="ssLag" class="o">—</b></div>
+      <div class="stat"><i>当前误差 |客户端−服务器|</i><b id="ssErr" class="r">—</b></div>
+      <div class="stat"><i>平均误差</i><b id="ssErrAvg">—</b></div>
+      <div class="stat"><i>校正次数</i><b id="ssCorr" class="p">0</b></div>
+      <div class="stat"><i>插值缓冲</i><b id="ssBuf" class="sm">关闭</b></div>
+    </div>
+    <div class="stage"><canvas id="ssTrack"></canvas></div>
+    <div class="legend">
+      <span><i style="background:#6ee7a8"></i>服务器真实位置（权威）</span>
+      <span><i style="background:#4cc9f0"></i>客户端渲染位置</span>
+      <span><i style="background:#b388ff"></i>预测 / 插值幽灵</span>
+      <span><i style="background:#ff6b8b"></i>不可预测事件（推搡）</span>
+    </div>
+    <h4 style="margin-top:14px">预测误差 / 校正量曲线（px）</h4>
+    <div class="stage"><canvas id="ssErrChart"></canvas></div>
+    <p class="muted" id="ssConc">操作：按 <kbd>A</kbd>/<kbd>D</kbd> 或下方按钮移动小方块，或保持「自动」让它自己来回走。开关三个选项对比手感。</p>
+    <div class="row">
+      <button class="btn" id="ssLeft">◀ 左移</button>
+      <button class="btn" id="ssRight">右移 ▶</button>
+      <label class="switch"><input type="checkbox" id="ssAuto" checked>自动移动</label>
+      <span class="chip" id="ssModeChip">纯快照渲染</span>
+    </div>
+    <div class="takeaway"><b>你现在看到的是：</b>关掉预测，蓝方块总是慢半拍、在追服务器；打开预测，蓝方块立即响应，但服务器下发的权威位置若与预测不同（红色推搡事件），就会发生<b>校正回弹</b>；打开插值且关掉预测时，蓝方块会在两份快照之间平滑过渡，代价是看到更久以前的世界 —— 平滑与新鲜不可兼得。</div>
+  </div>
+</section>
+
+<!-- ================= ⑥ 带宽对比 ================= -->
+<section class="page" id="bandwidth">
+  <h2>带宽对比：实体数 × tick 率</h2>
+  <p class="muted">三个模型都按「服务器向 8 个客户端广播」估算（锁步按 2 人房、每人每帧一个输入包）：锁步的带宽只跟玩家输入有关，与实体数无关；全量快照随实体数线性增长；增量快照只发变化实体 + 脏位图。</p>
+  <div class="card">
+    <div class="toolbar">
+      <div class="ctl"><label>实体数<b id="bwEntV">100</b></label><input type="range" id="bwEnt" min="1" max="500" value="100" step="1"></div>
+      <div class="ctl"><label>服务器 tick 率<b id="bwTickV">20 Hz</b></label><input type="range" id="bwTick" min="10" max="60" value="20" step="1"></div>
+      <div class="ctl"><label>增量模型：实体变化率<b id="bwDeltaV">30 %</b></label><input type="range" id="bwDelta" min="10" max="100" value="30" step="5"></div>
+    </div>
+    <div class="stats">
+      <div class="stat"><i>锁步输入包</i><b id="bwLock" class="g">—</b></div>
+      <div class="stat"><i>全量快照</i><b id="bwFull" class="r">—</b></div>
+      <div class="stat"><i>增量快照</i><b id="bwInc" class="o">—</b></div>
+      <div class="stat"><i>全量 / 锁步 倍数</i><b id="bwRatio">—</b></div>
+      <div class="stat"><i>每帧全量包大小</i><b id="bwPkt" class="sm">—</b></div>
+    </div>
+    <div class="grid2">
+      <div><h4>随实体数变化（当前 tick 率）</h4><div class="stage"><svg id="bwChartEnt" viewBox="0 0 560 300" style="width:100%;height:auto;display:block"></svg></div></div>
+      <div><h4>随 tick 率变化（当前实体数）</h4><div class="stage"><svg id="bwChartTick" viewBox="0 0 560 300" style="width:100%;height:auto;display:block"></svg></div></div>
+    </div>
+    <div class="grid3">
+      <div class="formula"><b>锁步输入包</b><br>玩家数 2 × 每帧 16 B × tick 率<br>= <span class="m">32 × tick B/s</span><br><span class="small">与实体数完全无关</span></div>
+      <div class="formula"><b>全量快照</b><br>8 客户端 × (8 B 头 + 实体×16 B) × tick 率<br>= <span class="m">(8 + 16N) × 8 × tick B/s</span></div>
+      <div class="formula"><b>增量快照</b><br>8 × (8 B 头 + 变化实体×16 B + 脏位图) × tick 率<br>脏位图 = ceil(N/8) B，<span class="m">变化率 30% 时约为全量 1/3</span></div>
+    </div>
+    <div class="takeaway"><b>你现在看到的是：</b>三条线的数量级差异。锁步的带宽被玩家输入锁死（几 KB/s 量级），全量快照在 100 实体 × 20 Hz × 8 客户端下约 251 KiB/s（257,280 B/s），增量把大头砍掉；但增量有 baseline 管理与丢包回退成本 —— 没有免费的午餐。</div>
+  </div>
+</section>
+
+<!-- ================= ⑦ 回滚重放 ================= -->
+<section class="page" id="rollback">
+  <h2>回滚重放（Rollback / GGPO）</h2>
+  <p class="muted">本地立即执行自己的输入；对方输入还没到，就先按「重复上一帧」预测，把画面跑下去。等到真实输入到达，如果预测错了，就回滚到那一帧、用真输入重放到当前帧 —— 用 CPU 换掉了「等帧」的延迟。</p>
+  <div class="card">
+    <div class="toolbar">
+      <button class="btn primary" id="rbRun">▶ 运行</button>
+      <button class="btn" id="rbStep">单步</button>
+      <button class="btn" id="rbReset">重置</button>
+      <div class="ctl"><label>对手输入变化率<b id="rbChangeV">25 %</b></label><input type="range" id="rbChange" min="0" max="100" value="25" step="1"></div>
+      <div class="ctl"><label>RTT（决定回滚窗口）<b id="rbRttV">100 ms</b></label><input type="range" id="rbRtt" min="30" max="300" value="100" step="10"></div>
+      <span class="chip" id="rbState">已暂停</span>
+    </div>
+    <div class="stage"><canvas id="rbCanvas"></canvas></div>
+    <div class="legend">
+      <span><i style="background:#4cc9f0"></i>本地角色（立即响应）</span>
+      <span><i style="background:#ffb86b"></i>对手：预测位置（用于渲染）</span>
+      <span><i style="background:#6ee7a8"></i>对手：真实位置（对照，客户端暂时看不到）</span>
+      <span><i style="background:#ff6b8b"></i>误预测 / 回滚</span>
+    </div>
+    <div class="stats">
+      <div class="stat"><i>已执行帧</i><b id="rbFrame" class="c">0</b></div>
+      <div class="stat"><i>误预测帧</i><b id="rbWrong" class="r">0</b></div>
+      <div class="stat"><i>误预测率</i><b id="rbRate">—</b></div>
+      <div class="stat"><i>回滚次数</i><b id="rbRb">0</b></div>
+      <div class="stat"><i>回滚总帧数</i><b id="rbRbf" class="o">0</b></div>
+      <div class="stat"><i>平均回滚深度</i><b id="rbDepth">—</b></div>
+      <div class="stat"><i>预测提前量</i><b id="rbLead" class="sm">—</b></div>
+    </div>
+    <div class="row" style="gap:12px;align-items:center;margin:4px 0 2px">
+      <span class="small" style="width:160px;flex:none">回滚深度（10 帧满格）</span>
+      <div class="bar" style="flex:1"><i id="rbRollbackBar" class="r"></i></div>
+      <span class="chip r" id="rbLastRollback">最近回滚：—</span>
+    </div>
+    <p class="muted" id="rbConc">点「运行」：观察橙色幽灵（预测）与绿色方块（确认）的差异，以及回滚重放时画面发生的短促回拉。</p>
+    <div class="takeaway"><b>你现在看到的是：</b>误预测的代价是「回滚 + 重放」的 CPU 开销，而不是画面等待。对手输入变化率越高，误预测率越高、回滚越频繁；RTT 越大，需要预测的帧数越多（回滚窗口越深），漏预测的代价也越大 —— 这就是格斗游戏通常把回滚窗口限制在 7–10 帧的原因。</div>
+  </div>
+</section>
+
+<!-- ================= ⑧ 自测与术语 ================= -->
+<section class="page" id="quiz">
+  <h2>自测：10 题即时判分</h2>
+  <p class="muted">单选，选中即判分并给出解析。全部答完后给出得分与薄弱点建议；想重来点「重新作答」。</p>
+  <div class="card">
+    <div id="quizList"></div>
+    <div class="scorebar">
+      <button class="btn" id="quizReset">重新作答</button>
+      <div style="flex:1"></div>
+      <span class="small">得分</span><span class="big" id="quizScore">0</span><span class="small" id="quizTotal">/ 10</span>
+    </div>
+    <div class="result" id="quizAdvice" style="min-height:54px;border:1px dashed #2c3b63;background:#0c1526;
+      border-radius:12px;padding:13px 15px;font-size:13px;line-height:1.85;color:#c4d1f0;margin-top:12px">
+      完成全部 10 题后，这里给出薄弱点建议。
+    </div>
+  </div>
+
+  <h2>术语速查（中英对照）</h2>
+  <div class="card">
+    <div class="row" style="margin-bottom:10px">
+      <input class="term-filter" id="glossFilter" placeholder="过滤术语，例如 rollback / 快照 / 确定性">
+      <span class="small" id="glossCount">— 个术语</span>
+    </div>
+    <details open>
+      <summary>术语速查表（28 条，中英对照，可折叠）</summary>
+      <div class="tablescroll" style="max-height:520px">
+        <table class="table" id="glossTable">
+          <thead><tr><th style="width:22%">中文</th><th style="width:24%">English</th><th>一句话解释</th></tr></thead>
+          <tbody id="glossBody"></tbody>
+        </table>
+      </div>
+    </details>
+    <div class="takeaway"><b>你现在看到的是：</b>把 8 个模块里的关键词串成一张速查表。建议先自测，再按错题回到对应模块动手调一遍参数 —— 这个实验室的重点不是记住名词，而是形成「延迟 / 带宽 / 一致性 / 复杂度」四维取舍的直觉。</div>
+  </div>
+</section>
+
+
+</main>
+<script>
+/* =========================================================================
+   帧同步 / 状态同步 · 交互实验室
+   -------------------------------------------------------------------------
+   组织方式：IIFE + 命名空间 Lab（避免污染全局）。
+   每个模块 = 一个 mount 函数（Lab.xxx），首次进入时初始化；
+   页面切换时调用 leaves[page] 停掉该模块的动画循环。
+   所有模拟均手写：定点数（Q16.16）、快照插值、预测校正、回滚重放。
+   ========================================================================= */
+(function () {
+'use strict';
+
+/* ============================================================================
+   一、基础工具
+   ========================================================================== */
+const $ = (s, r = document) => r.querySelector(s);
+const $$ = (s, r = document) => Array.from(r.querySelectorAll(s));
+const clamp = (v, a, b) => (v < a ? a : v > b ? b : v);
+const lerp = (a, b, t) => a + (b - a) * t;
+const fx2px = (v) => v / 65536;                            // Q16.16 → 像素
+const hex8 = (h) => ('0000000' + (h >>> 0).toString(16)).slice(-8).toUpperCase();
+
+function setT(id, text) {
+  const el = document.getElementById(id);
+  if (el) el.textContent = text;
+}
+function fmtBytes(n) {                                     // 字节/秒 → 人类可读
+  if (n >= 1048576) return (n / 1048576).toFixed(2) + ' MB/s';
+  if (n >= 1024) return (n / 1024).toFixed(1) + ' KB/s';
+  return Math.round(n) + ' B/s';
+}
+function fmtSize(n) {                                      // 字节大小（非速率）
+  if (n >= 1048576) return (n / 1048576).toFixed(2) + ' MB';
+  if (n >= 1024) return (n / 1024).toFixed(1) + ' KB';
+  return Math.round(n) + ' B';
+}
+
+/* 画布：固定逻辑分辨率（按 DPR 放大 backing store），CSS 宽度自适应容器。
+   这样所有绘制坐标都可以用「逻辑像素」，窄屏只是等比缩放。 */
+function setupCanvas(canvas, w, h) {
+  const dpr = Math.min(window.devicePixelRatio || 1, 2);
+  canvas.width = Math.round(w * dpr);
+  canvas.height = Math.round(h * dpr);
+  canvas.style.width = '100%';
+  canvas.style.height = 'auto';
+  canvas.style.aspectRatio = w + ' / ' + h;
+  const ctx = canvas.getContext('2d');
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  ctx._w = w; ctx._h = h;
+  return ctx;
+}
+
+/* 统一动画调度：全部用 requestAnimationFrame，禁用 setInterval 做逐帧逻辑。
+   step(dtMs) 内部自行累加固定步长；返回 {start, stop, running}。 */
+function makeTicker(step) {
+  let raf = 0, last = 0, running = false;
+  function frame(t) {
+    raf = 0;
+    if (!running) return;
+    if (!last) last = t;
+    const dt = Math.min(80, t - last);     // 切标签页回来时不要一次跳太多
+    last = t;
+    step(dt);
+    raf = requestAnimationFrame(frame);
+  }
+  return {
+    start() {
+      if (running) return;
+      running = true; last = 0;
+      raf = requestAnimationFrame(frame);
+    },
+    stop() {
+      running = false;
+      if (raf) cancelAnimationFrame(raf);
+      raf = 0;
+    },
+    get running() { return running; }
+  };
+}
+
+/* ============================================================================
+   二、确定性物理核心（float 三种运行 vs Q16.16 定点）
+   —— 纯函数、无 DOM 依赖，便于用 node 单独抽出验证。
+   ========================================================================== */
+/* ==CORE_BEGIN== */
+const Core = (function () {
+  'use strict';
+
+  const FIX_ONE = 65536;               // Q16.16：低 16 位是小数
+  const BOX = { W: 600, H: 380, R: 16 };
+  const DT = 1 / 60;
+  const GRAV = 900;
+  const WALL_E = 0.97;
+  const BALL_E = 0.98;
+
+  const F = (v) => Math.round(v * FIX_ONE);       // 初始化时从像素转定点
+  const F_GRAV = F(GRAV);
+  const F_DT = Math.round(FIX_ONE * DT);          // 1092 ≈ 1/60
+  const F_WALL_E = F(WALL_E);
+  const F_IMP = F(0.5 * (1 + BALL_E));
+  const F_MIN_D = F(BOX.R * 2);
+
+  /* ---- 定点数原语：全部是整数运算，结果是确定的 ---- */
+  function fxMul(a, b) { return Math.trunc((a * b) / FIX_ONE); }
+  function fxDiv(a, b) { return b === 0 ? 0 : Math.trunc((a * FIX_ONE) / b); }
+  function isqrtBig(n) {                          // 整数牛顿迭代开方（BigInt 保证不丢位）
+    if (n < 2n) return n;
+    let x0 = n, x1 = (n >> 1n) + 1n;
+    while (x1 < x0) { x0 = x1; x1 = (x1 + n / x1) >> 1n; }
+    return x0;
+  }
+  function fxSqrt(a) {                            // sqrt(Q16.16) → Q16.16
+    if (a <= 0) return 0;
+    return Number(isqrtBig(BigInt(a) * BigInt(FIX_ONE)));
+  }
+
+  /* ---- 初始世界：3 个球的弹球物理，同样的初值给三种运行 ---- */
+  function makeBalls() {
+    return [
+      { x: 90, y: 80, vx: 260, vy: 40 },
+      { x: 300, y: 120, vx: -40, vy: 210 },
+      { x: 500, y: 90, vx: -240, vy: 100 }
+    ];
+  }
+  function makeFixedBalls() {
+    return makeBalls().map((b) => ({
+      x: F(b.x), y: F(b.y), vx: F(b.vx), vy: F(b.vy)
+    }));
+  }
+
+  /* ---- 浮点版：mode = 'A' 双精度 / 'B' 单精度 / 'C' 双精度 + dt 十进制常量 ---- */
+  const f32 = (v) => Math.fround(v);
+
+  function collideFloat(bs) {
+    const minD = BOX.R * 2;
+    for (let i = 0; i < bs.length; i++) {
+      for (let j = i + 1; j < bs.length; j++) {
+        const a = bs[i], b = bs[j];
+        const dx = b.x - a.x, dy = b.y - a.y;
+        const d2 = dx * dx + dy * dy;
+        if (d2 >= minD * minD || d2 === 0) continue;
+        const d = Math.sqrt(d2);                  // 开方参与法线计算：误差放大的源头
+        const nx = dx / d, ny = dy / d;
+        const overlap = (minD - d) * 0.5;
+        a.x -= nx * overlap; a.y -= ny * overlap;
+        b.x += nx * overlap; b.y += ny * overlap;
+        const vrel = (b.vx - a.vx) * nx + (b.vy - a.vy) * ny;
+        if (vrel < 0) {                           // 等质量弹性碰撞
+          const imp = -0.5 * (1 + BALL_E) * vrel;
+          a.vx -= imp * nx; a.vy -= imp * ny;
+          b.vx += imp * nx; b.vy += imp * ny;
+        }
+      }
+    }
+    for (const b of bs) {
+      if (b.x < BOX.R) { b.x = BOX.R; b.vx = -b.vx * WALL_E; }
+      if (b.x > BOX.W - BOX.R) { b.x = BOX.W - BOX.R; b.vx = -b.vx * WALL_E; }
+      if (b.y < BOX.R) { b.y = BOX.R; b.vy = -b.vy * WALL_E; }
+      if (b.y > BOX.H - BOX.R) { b.y = BOX.H - BOX.R; b.vy = -b.vy * WALL_E; }
+    }
+  }
+
+  function stepFloat(bs, mode) {
+    for (const b of bs) {
+      if (mode === 'A') {                          // 双精度，标准半隐式欧拉
+        b.vy += GRAV * DT;
+        b.x += b.vx * DT;
+        b.y += b.vy * DT;
+      } else if (mode === 'B') {                   // 单精度：每步都截断到 float32
+        b.vy = f32(b.vy + f32(GRAV * DT));
+        b.x = f32(b.x + f32(b.vx * DT));
+        b.y = f32(b.y + f32(b.vy * DT));
+      } else {                                     // 双精度 + 手写常量 0.0166667
+        const dtc = 0.0166667;
+        b.vy += GRAV * dtc;
+        b.x += b.vx * dtc;
+        b.y += b.vy * dtc;
+      }
+    }
+    collideFloat(bs);
+  }
+
+  /* ---- 定点版：三个客户端执行完全相同的整数代码 ---- */
+  function collideFixed(bs) {
+    const minD2 = fxMul(F_MIN_D, F_MIN_D);
+    for (let i = 0; i < bs.length; i++) {
+      for (let j = i + 1; j < bs.length; j++) {
+        const a = bs[i], b = bs[j];
+        const dx = b.x - a.x, dy = b.y - a.y;
+        const d2 = fxMul(dx, dx) + fxMul(dy, dy);
+        if (d2 >= minD2 || d2 <= 0) continue;
+        const d = fxSqrt(d2);
+        if (d === 0) continue;
+        const nx = fxDiv(dx, d), ny = fxDiv(dy, d);
+        const push = Math.trunc((F_MIN_D - d) / 2);
+        const ox = fxMul(nx, push), oy = fxMul(ny, push);
+        a.x -= ox; a.y -= oy; b.x += ox; b.y += oy;
+        const vrel = fxMul(b.vx - a.vx, nx) + fxMul(b.vy - a.vy, ny);
+        if (vrel < 0) {
+          const imp = fxMul(-vrel, F_IMP);
+          const ix = fxMul(imp, nx), iy = fxMul(imp, ny);
+          a.vx -= ix; a.vy -= iy;
+          b.vx += ix; b.vy += iy;
+        }
+      }
+    }
+    const minP = F(BOX.R), maxX = F(BOX.W - BOX.R), maxY = F(BOX.H - BOX.R);
+    for (const b of bs) {
+      if (b.x < minP) { b.x = minP; b.vx = -fxMul(b.vx, F_WALL_E); }
+      if (b.x > maxX) { b.x = maxX; b.vx = -fxMul(b.vx, F_WALL_E); }
+      if (b.y < minP) { b.y = minP; b.vy = -fxMul(b.vy, F_WALL_E); }
+      if (b.y > maxY) { b.y = maxY; b.vy = -fxMul(b.vy, F_WALL_E); }
+    }
+  }
+
+  function stepFixed(bs) {
+    for (const b of bs) {
+      b.vy += fxMul(F_GRAV, F_DT);
+      b.x += fxMul(b.vx, F_DT);
+      b.y += fxMul(b.vy, F_DT);
+    }
+    collideFixed(bs);
+  }
+
+  /* ---- 状态哈希：FNV-1a，量化到 1/8 px，避免末位噪声直接变成“分歧” ---- */
+  function hashFloat(bs) {
+    let h = 2166136261 >>> 0;
+    for (const b of bs) {
+      const vals = [Math.round(b.x * 8), Math.round(b.y * 8),
+                    Math.round(b.vx * 8), Math.round(b.vy * 8)];
+      for (const v of vals) { h ^= (v >>> 0); h = Math.imul(h, 16777619) >>> 0; }
+    }
+    return h >>> 0;
+  }
+  function hashFixed(bs) {
+    let h = 2166136261 >>> 0;
+    for (const b of bs) {
+      for (const v of [b.x, b.y, b.vx, b.vy]) {
+        h ^= (v >>> 0); h = Math.imul(h, 16777619) >>> 0;
+      }
+    }
+    return h >>> 0;
+  }
+  function makeFloatClients() { return { A: makeBalls(), B: makeBalls(), C: makeBalls() }; }
+  function makeFixedClients() { return { A: makeFixedBalls(), B: makeFixedBalls(), C: makeFixedBalls() }; }
+
+  return {
+    FIX_ONE, BOX, DT, GRAV, F, fxMul, fxDiv, fxSqrt,
+    makeFloatClients, makeFixedClients, stepFloat, stepFixed,
+    hashFloat, hashFixed
+  };
+})();
+/* ==CORE_END== */
+
+/* ============================================================================
+   三、页面路由（hash 直达 + 刷新后停留）
+   ========================================================================== */
+const PAGES = ['overview', 'lockstep', 'determinism', 'catchup',
+               'statesync', 'bandwidth', 'rollback', 'quiz'];
+const mounts = {};          // 各模块的初始化函数（首次进入时调用）
+const enters = {};          // 每次进入页面时调用（恢复动画）
+const leaves = {};          // 离开页面时停止动画 / 释放资源
+const mounted = new Set();
+let currentPage = null;
+
+function reportError(e) {
+  // 调试钩子：自检脚本可注入 window.__LAB_ERRORS__ 收集模块初始化异常
+  try { if (window.__LAB_ERRORS__) window.__LAB_ERRORS__.push(e); } catch (_) { /* 忽略 */ }
+}
+
+function showPage(id, push = true) {
+  if (!PAGES.includes(id)) id = 'overview';
+  if (currentPage && leaves[currentPage]) {
+    try { leaves[currentPage](); } catch (e) { reportError(e); }
+  }
+  $$('.page').forEach((p) => p.classList.toggle('on', p.id === id));
+  $$('#nav a').forEach((a) => a.classList.toggle('on', a.dataset.p === id));
+  currentPage = id;
+  if (mounts[id] && !mounted.has(id)) {
+    mounted.add(id);
+    try { mounts[id](); } catch (e) { reportError(e); }
+  }
+  if (enters[id]) {
+    try { enters[id](); } catch (e) { reportError(e); }
+  }
+  if (push && location.hash !== '#' + id) history.replaceState(null, '', '#' + id);
+  const main = $('#main');
+  if (main) main.scrollTop = 0;
+}
+
+$$('#nav a').forEach((a) => a.addEventListener('click', (e) => {
+  e.preventDefault();
+  showPage(a.dataset.p);
+}));
+window.addEventListener('hashchange', () => showPage(location.hash.slice(1), false));
+window.addEventListener('keydown', (e) => {
+  if (!e.altKey || e.ctrlKey || e.metaKey) return;
+  if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') return;
+  const i = PAGES.indexOf(currentPage);
+  const next = PAGES[clamp(i + (e.key === 'ArrowRight' ? 1 : -1), 0, PAGES.length - 1)];
+  showPage(next);
+  e.preventDefault();
+});
+
+/* ============================================================================
+   四、模块 ① 两条路线总览
+   ========================================================================== */
+mounts.overview = function () {
+  const ctx = setupCanvas($('#ovCanvas'), 1040, 600);
+  const W = 1040, H = 600, T = 1000;
+  const LAT = [55, 75, 145];
+  const CLI_COL = ['#4cc9f0', '#ffb86b', '#b388ff'];
+  const xOf = (t) => 150 + (clamp(t, 0, T) / T) * 860;
+  const P1 = { titleY: 26, serverY: 88, clientY: [150, 190, 230], axisY: 262 };
+  const P2 = { titleY: 324, serverY: 386, clientY: [448, 488, 528], axisY: 560 };
+
+  /* ---- 帧同步消息表：6 帧，每帧 120ms；C 的延迟明显更高 ---- */
+  const lsMsgs = [], lsReady = [], lsExec = [[], [], []], lsSendT = [];
+  for (let f = 0; f < 6; f++) {
+    const t0 = 70 + f * 120;
+    lsSendT.push(t0);
+    let last = 0;
+    for (let i = 0; i < 3; i++) {
+      const sendT = t0 + i * 4;
+      const arriveT = sendT + LAT[i];
+      lsMsgs.push({ dir: 'up', i, sendT, arriveT, f, color: '#4cc9f0' });
+      last = Math.max(last, arriveT);
+    }
+    const readyT = last + 8;
+    lsReady.push(readyT);
+    for (let i = 0; i < 3; i++) {
+      const arriveT = readyT + LAT[i];
+      lsMsgs.push({ dir: 'down', i, sendT: readyT, arriveT, f, color: '#6ee7a8' });
+      lsExec[i].push(arriveT);
+    }
+  }
+
+  /* ---- 状态同步消息表：20Hz tick + 快照广播 ---- */
+  const ssMsgs = [], ssTicks = [];
+  for (let k = 0; k < 18; k++) {
+    const t0 = 100 + k * 50;
+    ssTicks.push(t0);
+    for (let i = 0; i < 3; i++) {
+      ssMsgs.push({ dir: 'down', i, sendT: t0, arriveT: t0 + LAT[i], f: k, color: '#6ee7a8' });
+    }
+  }
+  for (let k = 0; k < 8; k++) {
+    for (let i = 0; i < 3; i++) {
+      const sendT = 60 + k * 100 + i * 4;
+      ssMsgs.push({ dir: 'up', i, sendT, arriveT: sendT + LAT[i], f: k, color: '#4cc9f0' });
+    }
+  }
+
+  /* ---- 绘制工具 ---- */
+  function panelBg(x, y, w, h) {
+    ctx.fillStyle = 'rgba(13,22,40,.6)';
+    ctx.strokeStyle = '#1d2947';
+    ctx.lineWidth = 1;
+    const r = 12;
+    ctx.beginPath();
+    ctx.moveTo(x + r, y);
+    ctx.arcTo(x + w, y, x + w, y + h, r);
+    ctx.arcTo(x + w, y + h, x, y + h, r);
+    ctx.arcTo(x, y + h, x, y, r);
+    ctx.arcTo(x, y, x + w, y, r);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+  }
+  function title(text, y, color) {
+    ctx.font = '600 13px system-ui,"Microsoft YaHei",sans-serif';
+    ctx.fillStyle = color;
+    ctx.fillText(text, 26, y);
+  }
+  function hline(x1, x2, y, color, dash) {
+    ctx.save();
+    ctx.strokeStyle = color;
+    ctx.lineWidth = 1;
+    ctx.setLineDash(dash || []);
+    ctx.beginPath(); ctx.moveTo(x1, y); ctx.lineTo(x2, y); ctx.stroke();
+    ctx.restore();
+  }
+  function laneLabels(p, names) {
+    ctx.font = '11px ui-monospace,Consolas,monospace';
+    ctx.textAlign = 'left';
+    ctx.fillStyle = '#8a96b8';
+    ctx.fillText('服务器', 26, p.serverY + 4);
+    for (let i = 0; i < 3; i++) {
+      ctx.fillStyle = '#a7b3d4';
+      ctx.fillText(names[i], 26, p.clientY[i] + 4);
+    }
+    ctx.textAlign = 'left';
+  }
+  function axis(p) {
+    hline(150, 1010, p.axisY, '#22304f');
+    ctx.font = '10px ui-monospace,Consolas,monospace';
+    ctx.fillStyle = '#6f7d9d';
+    ctx.textAlign = 'center';
+    for (let t = 0; t <= T; t += 100) {
+      const x = xOf(t);
+      hline(x, x, p.axisY - 3, '#2b3a5e');
+      if (t % 200 === 0) ctx.fillText(t + 'ms', x, p.axisY + 14);
+    }
+    ctx.textAlign = 'left';
+  }
+  function msg(m, p, now, label) {
+    if (now < m.sendT) return;
+    const y1 = m.dir === 'up' ? p.clientY[m.i] : p.serverY;
+    const y2 = m.dir === 'up' ? p.serverY : p.clientY[m.i];
+    const sx = xOf(m.sendT), ex = xOf(m.arriveT);
+    const pctPos = clamp((now - m.sendT) / Math.max(1, m.arriveT - m.sendT), 0, 1);
+    const cx = lerp(sx, ex, pctPos), cy = lerp(y1, y2, pctPos);
+    ctx.globalAlpha = pctPos >= 1 ? 0.16 : 0.55;
+    ctx.strokeStyle = m.color;
+    ctx.lineWidth = 1.4;
+    ctx.beginPath(); ctx.moveTo(sx, y1); ctx.lineTo(cx, cy); ctx.stroke();
+    if (pctPos < 1) {
+      ctx.globalAlpha = 0.95;
+      ctx.fillStyle = m.color;
+      ctx.beginPath(); ctx.arc(cx, cy, 3.2, 0, Math.PI * 2); ctx.fill();
+      if (label) {
+        ctx.font = '9.5px ui-monospace,Consolas,monospace';
+        ctx.fillStyle = m.color;
+        ctx.textAlign = 'center';
+        ctx.fillText(label, cx, cy - 7);
+        ctx.textAlign = 'left';
+      }
+    } else {
+      ctx.globalAlpha = 0.5;
+      ctx.fillStyle = m.color;
+      ctx.beginPath(); ctx.arc(ex, y2, 2, 0, Math.PI * 2); ctx.fill();
+    }
+    ctx.globalAlpha = 1;
+  }
+
+  let t = 0, playing = false, speed = 1;
+
+  /* 所有事件时间点，供「单步」跳到下一个事件 */
+  const events = Array.from(new Set(
+    lsMsgs.concat(ssMsgs).flatMap((m) => [Math.round(m.sendT), Math.round(m.arriveT)])
+      .concat(lsReady.map(Math.round))
+      .concat(lsExec.flat().map(Math.round))
+  )).sort((a, b) => a - b);
+
+  function drawLockstep(now) {
+    panelBg(10, 10, 1020, 286);
+    title('① 帧同步：客户端各自执行，服务器只归并 / 广播输入', P1.titleY, '#8fe3ff');
+    // 等待段（粉）：从本帧发出到本端执行
+    for (let i = 0; i < 3; i++) {
+      for (let f = 0; f < 6; f++) {
+        const a = lsSendT[f], b = lsExec[i][f];
+        if (now < a) continue;
+        const xa = xOf(a), xb = xOf(Math.min(now, b));
+        if (xb <= xa) continue;
+        ctx.strokeStyle = 'rgba(255,107,139,.20)';
+        ctx.lineWidth = 4;
+        ctx.beginPath(); ctx.moveTo(xa, P1.clientY[i] + 9); ctx.lineTo(xb, P1.clientY[i] + 9); ctx.stroke();
+      }
+    }
+    hline(xOf(0), xOf(T), P1.serverY, '#26345a');
+    for (let i = 0; i < 3; i++) hline(xOf(0), xOf(T), P1.clientY[i], '#1e2947', [4, 5]);
+    laneLabels(P1, ['A (55ms)', 'B (75ms)', 'C (145ms · 最慢)']);
+    axis(P1);
+    for (const m of lsMsgs) {
+      if (m.sendT > now) continue;
+      const f = m.f;
+      msg(m, P1, now, f < 6 && (m.dir === 'up' || m.i === 0) ? 'F' + f : '');
+    }
+    // 服务器归并完成标记
+    for (let f = 0; f < 6; f++) {
+      const tr = lsReady[f];
+      if (now < tr) continue;
+      const x = xOf(tr);
+      ctx.fillStyle = '#ffe066';
+      ctx.save();
+      ctx.translate(x, P1.serverY);
+      ctx.rotate(Math.PI / 4);
+      ctx.fillRect(-4, -4, 8, 8);
+      ctx.restore();
+      ctx.font = '9.5px ui-monospace,Consolas,monospace';
+      ctx.fillStyle = '#ffe066';
+      ctx.textAlign = 'center';
+      ctx.fillText('归并 F' + f, x, P1.serverY - 14);
+      ctx.textAlign = 'left';
+    }
+    // 客户端执行标记
+    for (let i = 0; i < 3; i++) {
+      for (let f = 0; f < 6; f++) {
+        const e = lsExec[i][f];
+        if (now < e) continue;
+        ctx.fillStyle = CLI_COL[i];
+        ctx.beginPath(); ctx.arc(xOf(e), P1.clientY[i], 4, 0, Math.PI * 2); ctx.fill();
+        ctx.font = '9px ui-monospace,Consolas,monospace';
+        ctx.fillStyle = '#9fb0d8';
+        ctx.textAlign = 'center';
+        ctx.fillText('F' + f, xOf(e), P1.clientY[i] + 18);
+        ctx.textAlign = 'left';
+      }
+    }
+  }
+
+  function drawStatesync(now) {
+    panelBg(10, 308, 1020, 282);
+    title('② 状态同步：服务器 20Hz 权威 tick，客户端渲染快照（总是过去时）', P2.titleY, '#9df0c4');
+    hline(xOf(0), xOf(T), P2.serverY, '#26345a');
+    for (let i = 0; i < 3; i++) hline(xOf(0), xOf(T), P2.clientY[i], '#1e2947', [4, 5]);
+    laneLabels(P2, ['A (55ms)', 'B (75ms)', 'C (145ms)']);
+    axis(P2);
+    // 服务器 tick
+    for (const tk of ssTicks) {
+      if (tk > now) continue;
+      const x = xOf(tk);
+      ctx.strokeStyle = 'rgba(255,224,102,.55)';
+      ctx.lineWidth = 1;
+      ctx.beginPath(); ctx.moveTo(x, P2.serverY - 9); ctx.lineTo(x, P2.serverY + 9); ctx.stroke();
+    }
+    for (const m of ssMsgs) {
+      if (m.sendT > now) continue;
+      msg(m, P2, now, '');
+    }
+    // 每个客户端渲染到的快照时间
+    for (let i = 0; i < 3; i++) {
+      let latest = null;
+      for (const m of ssMsgs) {
+        if (m.dir !== 'down' || m.i !== i) continue;
+        if (m.arriveT <= now) latest = m;
+      }
+      if (latest) {
+        const x = xOf(latest.arriveT);
+        ctx.fillStyle = CLI_COL[i];
+        ctx.beginPath(); ctx.arc(x, P2.clientY[i], 4, 0, Math.PI * 2); ctx.fill();
+        const lag = Math.round(now - latest.sendT);
+        ctx.font = '10px ui-monospace,Consolas,monospace';
+        ctx.fillStyle = '#9fb0d8';
+        ctx.textAlign = 'right';
+        ctx.fillText('画面落后 ' + lag + 'ms', 1008, P2.clientY[i] + 4);
+        ctx.textAlign = 'left';
+      }
+    }
+  }
+
+  function statAt(now) {
+    let ready = 0;
+    for (const r of lsReady) if (r <= now) ready++;
+    let lag = null;
+    for (const m of ssMsgs) {
+      if (m.dir === 'down' && m.i === 0 && m.arriveT <= now) lag = now - m.sendT;
+    }
+    let sent = 0;
+    for (const m of lsMsgs) if (m.sendT <= now) sent++;
+    for (const m of ssMsgs) if (m.sendT <= now) sent++;
+    return { ready, lag, sent };
+  }
+
+  function draw() {
+    ctx.clearRect(0, 0, W, H);
+    drawLockstep(t);
+    drawStatesync(t);
+    // 播放头
+    const x = xOf(t);
+    ctx.strokeStyle = 'rgba(76,201,240,.55)';
+    ctx.lineWidth = 1.5;
+    ctx.beginPath(); ctx.moveTo(x, 14); ctx.lineTo(x, 586); ctx.stroke();
+    ctx.fillStyle = '#4cc9f0';
+    ctx.beginPath(); ctx.arc(x, 14, 3.5, 0, Math.PI * 2); ctx.fill();
+    ctx.font = '600 11px ui-monospace,Consolas,monospace';
+    ctx.fillStyle = '#bfeaff';
+    ctx.textAlign = 'center';
+    ctx.fillText(Math.round(t) + ' ms', x, 8);
+    ctx.textAlign = 'left';
+    const s = statAt(t);
+    setT('ovStatTime', Math.round(t) + ' ms');
+    setT('ovStatLf', s.ready + ' / 6');
+    setT('ovStatSs', s.lag === null ? '—' : Math.round(s.lag) + ' ms');
+    setT('ovStatMsg', String(s.sent));
+    $('#ovTimeLabel').textContent = Math.round(t) + ' ms';
+    const slider = $('#ovTime');
+    if (document.activeElement !== slider) slider.value = String(Math.round(t));
+  }
+
+  function setPlayLabel() {
+    const b = $('#ovPlay');
+    b.textContent = t >= T ? '↻ 重播' : (playing ? '⏸ 暂停' : '▶ 播放');
+  }
+
+  const ticker = makeTicker((dt) => {
+    if (playing) {
+      t += dt * 0.25 * speed;
+      if (t >= T) { t = T; playing = false; setPlayLabel(); }
+    }
+    draw();
+  });
+  enters.overview = () => ticker.start();
+  leaves.overview = () => ticker.stop();
+
+  $('#ovPlay').addEventListener('click', () => {
+    if (t >= T) t = 0;
+    playing = !playing;
+    setPlayLabel();
+  });
+  $('#ovStep').addEventListener('click', () => {
+    playing = false;
+    const next = events.find((e) => e > t + 1);
+    t = next === undefined ? T : next;
+    setPlayLabel();
+    draw();
+  });
+  $('#ovReset').addEventListener('click', () => {
+    playing = false; t = 0;
+    setPlayLabel(); draw();
+  });
+  $('#ovTime').addEventListener('input', (e) => {
+    playing = false;
+    t = clamp(+e.target.value, 0, T);
+    setPlayLabel(); draw();
+  });
+  $('#ovSpeed').addEventListener('click', (e) => {
+    const b = e.target.closest('button');
+    if (!b) return;
+    speed = +b.dataset.v;
+    $$('#ovSpeed button').forEach((x) => x.classList.toggle('on', x === b));
+  });
+
+  setPlayLabel();
+  draw();
+};
+
+/* ============================================================================
+   五、模块 ② 帧同步流水线
+   ========================================================================== */
+mounts.lockstep = function () {
+  const ctx = setupCanvas($('#lsCanvas'), 1040, 470);
+  const W = 1040, H = 470;
+  const FRAME_MS = 1000 / 60;
+  const CLI_COL = ['#4cc9f0', '#ffb86b', '#b388ff'];
+
+  const sim = {
+    t: 0, acc: 0,
+    serverFrame: -1, nextFrame: 0, waitFrom: 0, stalled: 0,
+    redun: 0, sent: 0, lostPkts: 0,
+    genNext: 0, rng: 20261101,
+    packets: [], serverHist: [], execHist: [[], [], []],
+    upBytes: 0, downBytes: 0, rateSamples: [],
+    params: { delay: 40, loss: 10 },
+    clients: [
+      { id: 'A', off: 0, have: [], exec: -1, retrans: {} },
+      { id: 'B', off: 25, have: [], exec: -1, retrans: {} },
+      { id: 'C', off: 60, have: [], exec: -1, retrans: {} }
+    ]
+  };
+
+  const delayOf = (i) => sim.params.delay + sim.clients[i].off;
+  function rnd() {
+    sim.rng = (sim.rng * 1664525 + 1013904223) >>> 0;
+    return sim.rng / 4294967296;
+  }
+  function reset() {
+    sim.t = 0; sim.acc = 0; sim.serverFrame = -1; sim.nextFrame = 0;
+    sim.waitFrom = 0; sim.stalled = 0; sim.redun = 0; sim.sent = 0;
+    sim.lostPkts = 0; sim.genNext = 0; sim.rng = 20261101;
+    sim.packets = []; sim.serverHist = []; sim.execHist = [[], [], []];
+    sim.upBytes = 0; sim.downBytes = 0; sim.rateSamples = [];
+    sim.clients = sim.clients.map((c) => ({ id: c.id, off: c.off, have: [], exec: -1, retrans: {} }));
+    renderCards();
+  }
+
+  /* ---- 模拟：固定 16.67ms 步长推进 ---- */
+  function generateInputs() {
+    while (sim.genNext * FRAME_MS <= sim.t) {
+      const f = sim.genNext;
+      for (let i = 0; i < 3; i++) {
+        const frames = [f, f - 1, f - 2].filter((x) => x >= 0);
+        const lost = rnd() < sim.params.loss / 100;
+        const sendT = sim.t;
+        const arriveT = sendT + delayOf(i);
+        sim.packets.push({ kind: 'input', i, frames, sendT, arriveT, lost, done: false });
+        sim.sent++;
+        sim.upBytes += 8 + frames.length * 4;
+      }
+      sim.genNext++;
+    }
+  }
+
+  function processArrivals() {
+    for (const p of sim.packets) {
+      if (p.done || p.arriveT > sim.t) continue;
+      p.done = true;
+      if (p.lost) { sim.lostPkts++; continue; }
+      const c = sim.clients[p.i];
+      for (const f of p.frames) {
+        if (c.have[f] === undefined) {
+          c.have[f] = sim.t;
+          // 冗余帧补回：到达的帧比包的主帧旧，且服务器正卡在这一帧
+          if (f < p.frames[0] && f === sim.nextFrame) sim.redun++;
+        }
+      }
+    }
+  }
+
+  function tryAdvance() {
+    let advanced = false;
+    for (;;) {
+      const f = sim.nextFrame;
+      if (!sim.clients.every((c) => c.have[f] !== undefined)) break;
+      sim.serverFrame = f;
+      sim.serverHist.push({ f, t: sim.t });
+      if (sim.serverHist.length > 400) sim.serverHist.shift();
+      for (let i = 0; i < 3; i++) {
+        sim.execHist[i].push({ f, t: sim.t + delayOf(i) });
+        if (sim.execHist[i].length > 400) sim.execHist[i].shift();
+        sim.downBytes += 20;                       // 广播包：8B 头 + 3 人输入集合
+      }
+      sim.nextFrame = f + 1;
+      sim.waitFrom = sim.t;
+      advanced = true;
+    }
+    return advanced;
+  }
+
+  function maybeRetransmit() {
+    const f = sim.nextFrame;
+    for (let i = 0; i < 3; i++) {
+      const c = sim.clients[i];
+      if (c.have[f] !== undefined || c.retrans[f]) continue;
+      c.retrans[f] = true;
+      const lost = rnd() < (sim.params.loss / 100) * 0.5;
+      sim.packets.push({
+        kind: 'retrans', i, frames: [f], sendT: sim.t,
+        arriveT: sim.t + delayOf(i) * 2, lost, done: false
+      });
+      sim.upBytes += 12;
+    }
+  }
+
+  function sampleRates() {
+    if (sim.t - (sim.rateSamples.length ? sim.rateSamples[sim.rateSamples.length - 1].t : -9999) < 250) return;
+    sim.rateSamples.push({ t: sim.t, up: sim.upBytes, down: sim.downBytes });
+    while (sim.rateSamples.length > 2 && sim.t - sim.rateSamples[0].t > 2500) sim.rateSamples.shift();
+  }
+  function rates() {
+    if (sim.rateSamples.length < 2) return { up: 0, down: 0 };
+    const a = sim.rateSamples[0], b = sim.rateSamples[sim.rateSamples.length - 1];
+    const dt = Math.max(1, b.t - a.t);
+    return { up: (b.up - a.up) / dt * 1000, down: (b.down - a.down) / dt * 1000 };
+  }
+
+  function tick(dt) {
+    sim.acc += dt;
+    let guard = 0;
+    while (sim.acc >= FRAME_MS && guard++ < 10) {
+      sim.acc -= FRAME_MS;
+      sim.t += FRAME_MS;
+      generateInputs();
+      processArrivals();
+      const adv = tryAdvance();
+      if (!adv && sim.serverFrame >= 0) {
+        sim.stalled += FRAME_MS;
+        if (sim.t - sim.waitFrom > 300) maybeRetransmit();
+      }
+      for (let i = 0; i < 3; i++) {
+        const c = sim.clients[i];
+        while (sim.execHist[i].length && sim.execHist[i][0].t <= sim.t) {
+          c.exec = sim.execHist[i][0].f;
+          sim.execHist[i].shift();
+        }
+      }
+      sampleRates();
+    }
+    // 清理很久以前的数据包
+    if (sim.packets.length > 400) sim.packets = sim.packets.filter((p) => p.arriveT > sim.t - 2000);
+  }
+
+  /* ---- 客户端状态卡 ---- */
+  function renderCards() {
+    const box = $('#lsClients');
+    box.innerHTML = sim.clients.map((c, i) => `
+      <div class="ccard" data-i="${i}">
+        <div class="top"><span>${c.id} · 延迟 <b>${delayOf(i)}ms</b></span><b class="st">初始化</b></div>
+        <div class="bar"><i class="${i === 2 ? 'o' : ''}"></i></div>
+        <div class="sub"><span>已执行 <b class="ex">—</b></span><span>状态 <b class="wa">—</b></span></div>
+      </div>`).join('');
+  }
+  function updateCards() {
+    const cards = $$('#lsClients .ccard');
+    cards.forEach((card, i) => {
+      const c = sim.clients[i];
+      const ex = Math.max(0, c.exec + 1);
+      const total = Math.max(1, sim.serverFrame + 1);
+      const pct = clamp((ex / total) * 100, 0, 100);
+      const bar = card.querySelector('.bar > i');
+      if (bar) bar.style.width = pct.toFixed(1) + '%';
+      const st = card.querySelector('.st');
+      const missing = sim.nextFrame;
+      const isWaiting = c.exec + 1 < sim.serverFrame + 1;
+      if (st) st.textContent = isWaiting ? '等待 F' + (c.exec + 2) : '同步中';
+      const exEl = card.querySelector('.ex');
+      if (exEl) exEl.textContent = c.exec >= 0 ? 'F' + c.exec : '—';
+      const wa = card.querySelector('.wa');
+      if (wa) wa.textContent = isWaiting ? '落后 ' + (sim.serverFrame - c.exec) + ' 帧' : '就绪';
+      card.classList.toggle('wait', isWaiting && sim.serverFrame >= 0);
+      card.classList.toggle('run', !isWaiting);
+    });
+  }
+
+  /* ---- 绘制 ---- */
+  const LANES = { server: 82, client: [156, 214, 272] };
+  function draw() {
+    ctx.clearRect(0, 0, W, H);
+    const now = sim.t;
+    const tLeft = now - 820, tRight = now + 120;
+    const x = (tt) => 132 + ((tt - tLeft) / (tRight - tLeft)) * 876;
+
+    ctx.fillStyle = 'rgba(13,22,40,.55)';
+    ctx.fillRect(12, 10, 1016, 300);
+    ctx.font = '600 12.5px system-ui,"Microsoft YaHei",sans-serif';
+    ctx.fillStyle = '#8fe3ff';
+    ctx.fillText('实时网络视图（时间轴滚动）· 左 = 过去 820ms，右 = 未来 120ms', 26, 28);
+
+    // 车道
+    ctx.font = '11px ui-monospace,Consolas,monospace';
+    ctx.fillStyle = '#8a96b8';
+    ctx.fillText('服务器', 26, LANES.server + 4);
+    for (let i = 0; i < 3; i++) {
+      ctx.fillStyle = CLI_COL[i];
+      ctx.fillText('客户端 ' + sim.clients[i].id, 26, LANES.client[i] + 4);
+    }
+    ctx.strokeStyle = '#26345a'; ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(132, LANES.server); ctx.lineTo(1008, LANES.server); ctx.stroke();
+    for (let i = 0; i < 3; i++) {
+      ctx.strokeStyle = '#1e2947';
+      ctx.setLineDash([4, 5]);
+      ctx.beginPath(); ctx.moveTo(132, LANES.client[i]); ctx.lineTo(1008, LANES.client[i]); ctx.stroke();
+      ctx.setLineDash([]);
+    }
+
+    // 时间刻度
+    ctx.font = '10px ui-monospace,Consolas,monospace';
+    ctx.fillStyle = '#6f7d9d';
+    ctx.textAlign = 'center';
+    const startTick = Math.ceil(tLeft / 100) * 100;
+    for (let tt = startTick; tt <= tRight; tt += 100) {
+      const xx = x(tt);
+      ctx.strokeStyle = '#22304f';
+      ctx.beginPath(); ctx.moveTo(xx, 300); ctx.lineTo(xx, 306); ctx.stroke();
+      ctx.fillText(Math.round(tt) + 'ms', xx, 320);
+    }
+    ctx.textAlign = 'left';
+
+    // 服务器等待：把 waitFrom 到 now 标红
+    const waiting = sim.serverFrame >= 0 && sim.nextFrame > sim.serverFrame + 1;
+    if (waiting) {
+      const xa = x(sim.waitFrom), xb = x(now);
+      if (xb > xa) {
+        ctx.fillStyle = 'rgba(255,107,139,.12)';
+        ctx.fillRect(xa, LANES.server - 14, xb - xa, 28);
+      }
+    }
+
+    // 输入包（含重传）
+    for (const p of sim.packets) {
+      if (p.arriveT < tLeft || p.sendT > tRight) continue;
+      const y1 = LANES.client[p.i], y2 = LANES.server;
+      const sx = x(p.sendT), ex = x(p.arriveT);
+      const color = p.lost ? '#ff6b8b' : (p.kind === 'retrans' ? '#ffb86b' : '#4cc9f0');
+      ctx.globalAlpha = p.lost ? 0.7 : (p.kind === 'retrans' ? 0.6 : 0.34);
+      ctx.strokeStyle = color;
+      ctx.lineWidth = p.kind === 'retrans' ? 1.8 : 1.3;
+      if (p.lost) ctx.setLineDash([3, 3]);
+      ctx.beginPath(); ctx.moveTo(sx, y1);
+      const pctPos = clamp((now - p.sendT) / Math.max(1, p.arriveT - p.sendT), 0, 1);
+      const cx = lerp(sx, ex, pctPos), cy = lerp(y1, y2, pctPos);
+      ctx.lineTo(cx, cy); ctx.stroke();
+      ctx.setLineDash([]);
+      ctx.globalAlpha = 1;
+      if (p.lost) {
+        ctx.fillStyle = '#ff6b8b';
+        ctx.font = '11px ui-monospace,Consolas,monospace';
+        ctx.textAlign = 'center';
+        ctx.fillText('✕', lerp(sx, ex, 0.55), lerp(y1, y2, 0.55));
+        ctx.textAlign = 'left';
+      } else {
+        ctx.fillStyle = color;
+        ctx.beginPath(); ctx.arc(cx, cy, pctPos < 1 ? 3 : 2, 0, Math.PI * 2); ctx.fill();
+        if (pctPos < 1) {
+          // 输入包太密：每 4 帧标一次，重传包总是标注
+          if (p.frames[0] % 4 === 0 || p.kind === 'retrans') {
+            ctx.font = '9.5px ui-monospace,Consolas,monospace';
+            ctx.textAlign = 'center';
+            ctx.fillText('F' + p.frames[0] + (p.kind === 'retrans' ? '↺' : ''), cx, cy - 7);
+            ctx.textAlign = 'left';
+          }
+        }
+      }
+    }
+
+    // 服务器确认（绿点）与客户端执行（小圆）
+    for (const c of sim.serverHist) {
+      if (c.t < tLeft) continue;
+      ctx.fillStyle = '#6ee7a8';
+      ctx.beginPath(); ctx.arc(x(c.t), LANES.server, 3, 0, Math.PI * 2); ctx.fill();
+    }
+    for (let i = 0; i < 3; i++) {
+      for (const e of sim.execHist[i]) {
+        if (e.t < tLeft) continue;
+        ctx.fillStyle = CLI_COL[i];
+        ctx.beginPath(); ctx.arc(x(e.t), LANES.client[i], 3, 0, Math.PI * 2); ctx.fill();
+      }
+      // 当前执行状态文字
+      ctx.font = '10px ui-monospace,Consolas,monospace';
+      ctx.fillStyle = '#9fb0d8';
+      ctx.textAlign = 'right';
+      ctx.fillText('执行到 F' + (sim.clients[i].exec >= 0 ? sim.clients[i].exec : '-'), 1006, LANES.client[i] - 8);
+      ctx.textAlign = 'left';
+    }
+
+    // 当前等待原因
+    if (waiting) {
+      const missing = sim.clients.filter((c) => c.have[sim.nextFrame] === undefined).map((c) => c.id);
+      ctx.font = '600 11px ui-monospace,Consolas,monospace';
+      ctx.fillStyle = '#ff9db3';
+      ctx.fillText('等 F' + sim.nextFrame + '：' + missing.join('/') + ' 未到（已等 ' +
+        Math.round(now - sim.waitFrom) + 'ms）', 300, 28);
+    }
+
+    // 竖直「现在」线
+    const xn = x(now);
+    ctx.strokeStyle = 'rgba(76,201,240,.5)';
+    ctx.lineWidth = 1.2;
+    ctx.beginPath(); ctx.moveTo(xn, 16); ctx.lineTo(xn, 318); ctx.stroke();
+
+    drawFrameStrip(now);
+  }
+
+  function drawFrameStrip(now) {
+    const f0 = Math.max(0, sim.nextFrame - 12);
+    const f1 = sim.nextFrame + 22;
+    const X0 = 150, X1 = 1008;
+    const cx = (f) => X0 + ((f - f0) / Math.max(1, f1 - f0)) * (X1 - X0);
+    ctx.fillStyle = 'rgba(13,22,40,.55)';
+    ctx.fillRect(12, 332, 1016, 128);
+    ctx.font = '600 12px system-ui,"Microsoft YaHei",sans-serif';
+    ctx.fillStyle = '#c9d5f8';
+    ctx.fillText('帧表：每一列是一帧，三行分别是 A/B/C 的输入是否到齐', 26, 350);
+    ctx.font = '10px ui-monospace,Consolas,monospace';
+    // 帧号
+    ctx.textAlign = 'center';
+    for (let f = f0; f < f1; f++) {
+      if (f % 5 === 0) {
+        ctx.fillStyle = '#6f7d9d';
+        ctx.fillText('F' + f, cx(f), 368);
+      }
+    }
+    // 已确认帧底色
+    for (let f = f0; f < f1; f++) {
+      if (f <= sim.serverFrame) {
+        ctx.fillStyle = 'rgba(110,231,168,.10)';
+        ctx.fillRect(cx(f) - 5, 376, 10, 66);
+      }
+      if (f === sim.nextFrame) {
+        ctx.fillStyle = 'rgba(255,107,139,.12)';
+        ctx.fillRect(cx(f) - 5, 376, 10, 66);
+      }
+    }
+    for (let i = 0; i < 3; i++) {
+      const y = 390 + i * 21;
+      ctx.fillStyle = CLI_COL[i];
+      ctx.textAlign = 'left';
+      ctx.fillText(sim.clients[i].id, 128, y + 4);
+      for (let f = f0; f < f1; f++) {
+        const have = sim.clients[i].have[f] !== undefined;
+        const confirmed = f <= sim.serverFrame;
+        let color;
+        if (have) color = confirmed ? 'rgba(110,231,168,.9)' : 'rgba(76,201,240,.85)';
+        else color = f === sim.nextFrame ? '#ff6b8b'
+          : (f < sim.genNext ? 'rgba(255,107,139,.35)' : 'rgba(120,130,160,.25)');
+        ctx.fillStyle = color;
+        ctx.beginPath(); ctx.arc(cx(f), y, 4.2, 0, Math.PI * 2); ctx.fill();
+      }
+    }
+    ctx.textAlign = 'left';
+    ctx.font = '10px ui-monospace,Consolas,monospace';
+    ctx.fillStyle = '#6f7d9d';
+    ctx.fillText('● 已到   ● 已确认   ● 缺失/等待   ● 尚未生成', 150, 452);
+  }
+
+  /* ---- 状态栏 ---- */
+  function updateStats() {
+    setT('lsFrame', sim.serverFrame >= 0 ? 'F' + sim.serverFrame : '—');
+    setT('lsStall', Math.round(sim.stalled) + ' ms');
+    const waiting = sim.serverFrame >= 0 && sim.nextFrame > sim.serverFrame + 1;
+    if (waiting) {
+      const missing = sim.clients.filter((c) => c.have[sim.nextFrame] === undefined).map((c) => c.id);
+      setT('lsWait', 'F' + sim.nextFrame + ' · 缺 ' + missing.join('/'));
+    } else {
+      setT('lsWait', '无（推进中）');
+    }
+    setT('lsRedun', String(sim.redun));
+    const r = rates();
+    setT('lsUp', fmtBytes(r.up));
+    setT('lsDown', fmtBytes(r.down));
+    const slowId = 'C';
+    setT('lsConc', '延迟：A ' + delayOf(0) + 'ms / B ' + delayOf(1) + 'ms / C ' + delayOf(2) +
+      'ms（最慢 = ' + slowId + '）。累计卡顿 ' + Math.round(sim.stalled) + 'ms，冗余补回 ' +
+      sim.redun + ' 帧，丢包 ' + sim.lostPkts + ' 个。');
+    const chip = $('#lsRunningChip');
+    chip.textContent = playing ? '运行中' : '已暂停';
+    chip.className = 'chip ' + (playing ? 'g' : '');
+    updateCards();
+  }
+
+  let playing = false;
+  const ticker = makeTicker((dt) => {
+    if (playing) tick(dt);
+    draw();
+    updateStats();
+  });
+  enters.lockstep = () => { renderCards(); ticker.start(); };
+  leaves.lockstep = () => ticker.stop();
+
+  $('#lsRun').addEventListener('click', () => {
+    playing = !playing;
+    $('#lsRun').textContent = playing ? '⏸ 暂停' : '▶ 运行';
+  });
+  $('#lsStep').addEventListener('click', () => {
+    playing = false;
+    $('#lsRun').textContent = '▶ 运行';
+    tick(300);                                  // 单步 = 前进 300ms（约 18 个逻辑帧）
+    draw();
+    updateStats();
+  });
+  $('#lsReset').addEventListener('click', () => { playing = false; $('#lsRun').textContent = '▶ 运行'; reset(); draw(); updateStats(); });
+  $('#lsDelay').addEventListener('input', (e) => {
+    sim.params.delay = +e.target.value;
+    setT('lsDelayV', sim.params.delay + ' ms');
+    renderCards();
+  });
+  $('#lsLoss').addEventListener('input', (e) => {
+    sim.params.loss = +e.target.value;
+    setT('lsLossV', sim.params.loss + ' %');
+  });
+
+  reset();
+  draw();
+  updateStats();
+};
+
+/* ============================================================================
+   六、模块 ③ 确定性实验（float vs Q16.16）
+   ========================================================================== */
+mounts.determinism = function () {
+  const W = 520, H = 400, PAD = 22;
+  const ctxF = setupCanvas($('#dtFloat'), W, H);
+  const ctxX = setupCanvas($('#dtFixed'), W, H);
+  const BOX = Core.BOX;
+  const scale = Math.min((W - PAD * 2) / BOX.W, (H - PAD * 2) / BOX.H);
+  const offX = (W - BOX.W * scale) / 2;
+  const offY = (H - BOX.H * scale) / 2;
+  const wx = (x) => offX + x * scale;
+  const wy = (y) => offY + y * scale;
+  const CLI_COL = ['#4cc9f0', '#ffb86b', '#b388ff'];
+  const MAX_FRAME = 900;
+  const TRAIL_LEN = 110;
+
+  const sim = {
+    frame: 0,
+    flu: Core.makeFloatClients(),
+    fix: Core.makeFixedClients(),
+    trailF: null, trailX: null,
+    divAB: null, divAC: null, divFix: null,
+    rows: 0
+  };
+  let paused = true, speed = 2, acc = 0;
+
+  function reset() {
+    sim.frame = 0;
+    sim.flu = Core.makeFloatClients();
+    sim.fix = Core.makeFixedClients();
+    sim.divAB = sim.divAC = sim.divFix = null;
+    sim.rows = 0;
+    sim.trailF = { A: [[], [], []], B: [[], [], []], C: [[], [], []] };
+    sim.trailX = { A: [[], [], []], B: [[], [], []], C: [[], [], []] };
+    for (const k of ['A', 'B', 'C']) {
+      for (let b = 0; b < 3; b++) {
+        pushTrail(sim.trailF[k][b], sim.flu[k][b].x, sim.flu[k][b].y);
+        pushTrail(sim.trailX[k][b], fx2px(sim.fix[k][b].x), fx2px(sim.fix[k][b].y));
+      }
+    }
+    const body = $('#dtHashBody');
+    body.innerHTML = '';
+    addHashRow(0, Core.hashFloat(sim.flu.A), Core.hashFloat(sim.flu.B),
+      Core.hashFloat(sim.flu.C), Core.hashFixed(sim.fix.A));
+    setT('dtFrameChip', '帧 0');
+    setT('dtFrame2', '0');
+    setT('dtDivChip', '首次分歧：—');
+    setT('dtDivAB', '—');
+    setT('dtDivAC', '—');
+    setT('dtDivFix', '—');
+    setT('dtHint', '按「单步」逐帧推进，注意哈希列第一次变红的帧号。');
+    draw();
+  }
+
+  function pushTrail(arr, x, y) {
+    arr.push([x, y]);
+    if (arr.length > TRAIL_LEN) arr.shift();
+  }
+
+  /* 逐帧推进：两套物理同时跑，再逐帧比较量化哈希 */
+  function stepOnce() {
+    if (sim.frame >= MAX_FRAME) return false;
+    sim.frame++;
+    for (const k of ['A', 'B', 'C']) Core.stepFloat(sim.flu[k], k);
+    for (const k of ['A', 'B', 'C']) Core.stepFixed(sim.fix[k]);
+    for (const k of ['A', 'B', 'C']) {
+      for (let b = 0; b < 3; b++) {
+        pushTrail(sim.trailF[k][b], sim.flu[k][b].x, sim.flu[k][b].y);
+        pushTrail(sim.trailX[k][b], fx2px(sim.fix[k][b].x), fx2px(sim.fix[k][b].y));
+      }
+    }
+    const hA = Core.hashFloat(sim.flu.A);
+    const hB = Core.hashFloat(sim.flu.B);
+    const hC = Core.hashFloat(sim.flu.C);
+    const gA = Core.hashFixed(sim.fix.A);
+    const gB = Core.hashFixed(sim.fix.B);
+    const gC = Core.hashFixed(sim.fix.C);
+    if (sim.divAB === null && hA !== hB) sim.divAB = sim.frame;
+    if (sim.divAC === null && hA !== hC) sim.divAC = sim.frame;
+    if (sim.divFix === null && (gA !== gB || gA !== gC)) sim.divFix = sim.frame;
+    addHashRow(sim.frame, hA, hB, hC, gA);
+    setT('dtFrameChip', '帧 ' + sim.frame);
+    setT('dtFrame2', String(sim.frame));
+    setT('dtDivAB', sim.divAB === null ? '未出现' : '第 ' + sim.divAB + ' 帧');
+    setT('dtDivAC', sim.divAC === null ? '未出现' : '第 ' + sim.divAC + ' 帧');
+    setT('dtDivFix', sim.divFix === null ? '无（一致）' : '第 ' + sim.divFix + ' 帧');
+    const chip = sim.divAB === null ? '首次分歧：—' : '首次分歧 B@' + sim.divAB + (sim.divAC !== null ? ' / C@' + sim.divAC : '');
+    setT('dtDivChip', chip);
+    const hint = $('#dtHint');
+    if (hint) {
+      hint.textContent = sim.divAB === null
+        ? '继续单步：目前所有客户端的量化哈希仍一致。'
+        : '第 ' + Math.min(sim.divAB, sim.divAC === null ? Infinity : sim.divAC) +
+          ' 帧出现第一个不一致的哈希；此时画面可能还看不出差别 —— 这就是「哈希先报警、肉眼后看见」。';
+    }
+    return true;
+  }
+
+  function addHashRow(f, hA, hB, hC, gA) {
+    const tr = document.createElement('tr');
+    const markB = hB !== hA ? ' class="bad"' : ' class="good"';
+    const markC = hC !== hA ? ' class="bad"' : ' class="good"';
+    tr.innerHTML = '<td>' + f + '</td>' +
+      '<td>' + hex8(hA) + '</td>' +
+      '<td' + markB + '>' + hex8(hB) + '</td>' +
+      '<td' + markC + '>' + hex8(hC) + '</td>' +
+      '<td class="good">' + hex8(gA) + '</td>';
+    const body = $('#dtHashBody');
+    body.appendChild(tr);
+    sim.rows++;
+    if (sim.rows > MAX_FRAME + 1) {
+      body.removeChild(body.firstChild);
+      sim.rows--;
+    }
+    if (!paused) {
+      const box = $('#dtHashTable').parentElement;
+      if (box) box.scrollTop = box.scrollHeight;
+    }
+  }
+
+  /* ---- 绘制一个 600×380 的世界 ---- */
+  function drawBoard(ctx) {
+    ctx.clearRect(0, 0, W, H);
+    ctx.fillStyle = '#0a1322';
+    ctx.fillRect(0, 0, W, H);
+    ctx.strokeStyle = '#22304f';
+    ctx.lineWidth = 1;
+    ctx.strokeRect(offX, offY, BOX.W * scale, BOX.H * scale);
+    // 网格
+    ctx.strokeStyle = 'rgba(76,201,240,.05)';
+    for (let gx = 0; gx <= BOX.W; gx += 100) {
+      ctx.beginPath(); ctx.moveTo(wx(gx), offY); ctx.lineTo(wx(gx), offY + BOX.H * scale); ctx.stroke();
+    }
+    for (let gy = 0; gy <= BOX.H; gy += 95) {
+      ctx.beginPath(); ctx.moveTo(offX, wy(gy)); ctx.lineTo(offX + BOX.W * scale, wy(gy)); ctx.stroke();
+    }
+  }
+  function polyline(ctx, pts, color, width, dash) {
+    if (pts.length < 2) return;
+    ctx.strokeStyle = color;
+    ctx.lineWidth = width;
+    if (dash) ctx.setLineDash(dash);
+    ctx.beginPath();
+    ctx.moveTo(wx(pts[0][0]), wy(pts[0][1]));
+    for (let i = 1; i < pts.length; i++) ctx.lineTo(wx(pts[i][0]), wy(pts[i][1]));
+    ctx.stroke();
+    if (dash) ctx.setLineDash([]);
+  }
+
+  function drawFloat() {
+    const ctx = ctxF;
+    drawBoard(ctx);
+    const trail = sim.trailF;
+    for (let b = 0; b < 3; b++) {
+      for (let k = 0; k < 3; k++) {
+        const key = ['A', 'B', 'C'][k];
+        ctx.globalAlpha = k === 0 ? 0.85 : 0.7;
+        polyline(ctx, trail[key][b], CLI_COL[k], k === 0 ? 2.2 : 1.6);
+      }
+    }
+    ctx.globalAlpha = 1;
+    for (let b = 0; b < 3; b++) {
+      const radii = [0.72, 0.56, 0.42];
+      for (let k = 0; k < 3; k++) {
+        const key = ['A', 'B', 'C'][k];
+        const ball = sim.flu[key][b];
+        ctx.fillStyle = CLI_COL[k];
+        ctx.beginPath();
+        ctx.arc(wx(ball.x), wy(ball.y), Math.max(2.5, BOX.R * scale * radii[k]), 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+    // HUD
+    ctx.font = '10px ui-monospace,Consolas,monospace';
+    ctx.fillStyle = '#8a96b8';
+    ctx.fillText('A double / B float32 / C dt 常量 · 帧 ' + sim.frame, 14, 18);
+    if (sim.divAB !== null) {
+      ctx.fillStyle = '#ff9db3';
+      ctx.fillText('已分叉：B@' + sim.divAB + (sim.divAC !== null ? ' / C@' + sim.divAC : ''), 14, H - 12);
+    } else {
+      ctx.fillStyle = '#9df0c4';
+      ctx.fillText('轨迹仍然重合', 14, H - 12);
+    }
+  }
+
+  function drawFixed() {
+    const ctx = ctxX;
+    drawBoard(ctx);
+    const trail = sim.trailX;
+    // 三个客户端逐位一致：用同色系、不同线宽绘制，重叠后看起来仍是一条线
+    for (let b = 0; b < 3; b++) {
+      polyline(ctx, trail.A[b], 'rgba(110,231,168,.95)', 2.4);
+      polyline(ctx, trail.B[b], 'rgba(150,255,200,.55)', 1.3);
+      polyline(ctx, trail.C[b], 'rgba(190,255,225,.45)', 1.1, [3, 4]);
+    }
+    const radii = [0.72, 0.56, 0.42];
+    const greens = ['#2f9e6f', '#6ee7a8', '#b7ffd9'];
+    for (let b = 0; b < 3; b++) {
+      for (let k = 2; k >= 0; k--) {
+        const key = ['A', 'B', 'C'][k];
+        const fb = sim.fix[key][b];
+        ctx.fillStyle = greens[k];
+        ctx.beginPath();
+        ctx.arc(wx(fx2px(fb.x)), wy(fx2px(fb.y)), Math.max(2.5, BOX.R * scale * radii[k]), 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+    ctx.font = '10px ui-monospace,Consolas,monospace';
+    ctx.fillStyle = '#9df0c4';
+    ctx.fillText('Q16.16 整数运算 · 三端完全相同（三条线重叠）', 14, 18);
+    ctx.fillStyle = '#8a96b8';
+    ctx.fillText('定点与浮点本来就会跑出不同轨迹；要比的是「三端之间」是否一致', 14, H - 12);
+  }
+
+  function draw() {
+    drawFloat();
+    drawFixed();
+  }
+
+  const ticker = makeTicker((dt) => {
+    if (!paused) {
+      acc += dt * speed;
+      let steps = 0;
+      while (acc >= 1000 / 60 && steps < 8) {
+        acc -= 1000 / 60;
+        if (!stepOnce()) { paused = true; setPlayLabel(); break; }
+        steps++;
+      }
+      draw();
+    }
+  });
+  function setPlayLabel() {
+    $('#dtPlay').textContent = paused ? '▶ 播放' : '⏸ 暂停';
+  }
+  enters.determinism = () => { ticker.start(); setPlayLabel(); };
+  leaves.determinism = () => ticker.stop();
+
+  $('#dtPlay').addEventListener('click', () => { paused = !paused; setPlayLabel(); draw(); });
+  $('#dtStep').addEventListener('click', () => { paused = true; setPlayLabel(); stepOnce(); draw(); });
+  $('#dtReset').addEventListener('click', () => {
+    paused = true; acc = 0; setPlayLabel(); reset();
+  });
+  $('#dtSpeed').addEventListener('click', (e) => {
+    const b = e.target.closest('button');
+    if (!b) return;
+    speed = +b.dataset.v;
+    $$('#dtSpeed button').forEach((x) => x.classList.toggle('on', x === b));
+  });
+
+  reset();
+  setPlayLabel();
+  ticker.start();
+};
+
+/* ============================================================================
+   七、模块 ④ 追帧与断线重连
+   ========================================================================== */
+mounts.catchup = function () {
+  const W = 1040, H = 340;
+  const ctx = setupCanvas($('#cuCanvas'), W, H);
+
+  const sim = {
+    server: 600,          // 服务器当前帧（模拟已运行 10 秒）
+    client: 600,
+    snapshot: 0,
+    behind: 240,
+    initialGap: 240,
+    speed: 2,
+    phase: 'idle',        // idle | snapshot | catchup | live
+    phaseT: 0,
+    playing: false,
+    replayed: 0,
+    started: false
+  };
+
+  function reset() {
+    sim.server = 600; sim.client = 600; sim.snapshot = 0;
+    sim.phase = 'idle'; sim.phaseT = 0; sim.replayed = 0;
+    sim.playing = false; sim.started = false;
+    sim.behind = +$('#cuBehind').value;
+    sim.initialGap = sim.behind;
+    $('#cuPlay').textContent = '▶ 重连并追帧';
+    updateStats();
+    draw();
+  }
+
+  function begin() {
+    sim.snapshot = sim.server - sim.behind;
+    sim.client = sim.snapshot;
+    sim.initialGap = sim.behind;
+    sim.replayed = 0;
+    sim.phase = 'snapshot';
+    sim.phaseT = 0;
+    sim.playing = true;
+    sim.started = true;
+    $('#cuPlay').textContent = '⏸ 暂停';
+  }
+
+  function tick(dt) {
+    if (!sim.playing) return;
+    // 服务器始终以 60Hz 推进
+    sim.server += (60 * dt) / 1000;
+    if (sim.phase === 'snapshot') {
+      sim.phaseT += dt;
+      if (sim.phaseT > 500) { sim.phase = 'catchup'; sim.phaseT = 0; }
+    } else if (sim.phase === 'catchup') {
+      // 客户端以 speed 倍速回放已知帧，追上为止
+      const gain = (60 * sim.speed * dt) / 1000;
+      sim.client = Math.min(sim.server, sim.client + gain);
+      sim.replayed = Math.max(0, sim.client - sim.snapshot);
+      if (sim.client >= sim.server - 0.5) {
+        sim.client = sim.server;
+        sim.phase = 'live';
+        sim.playing = false;
+        $('#cuPlay').textContent = '↻ 再来一次';
+      }
+    } else if (sim.phase === 'live') {
+      sim.client = sim.server;
+    }
+  }
+
+  function draw() {
+    ctx.clearRect(0, 0, W, H);
+    ctx.fillStyle = '#0a1322';
+    ctx.fillRect(0, 0, W, H);
+    const f1 = Math.max(sim.server + 40, sim.snapshot + 30, 60);
+    const f0 = sim.started ? Math.max(0, sim.snapshot - 30) : 0;
+    const X0 = 70, X1 = 1000;
+    const xf = (f) => X0 + ((f - f0) / Math.max(1, f1 - f0)) * (X1 - X0);
+    const LANE = { server: 78, log: 168, client: 258 };
+
+    ctx.font = '600 12.5px system-ui,"Microsoft YaHei",sans-serif';
+    ctx.fillStyle = '#8fe3ff';
+    ctx.fillText('重连与追帧：服务器继续跑，客户端以倍速重放缺失帧', 24, 24);
+
+    // 标尺
+    ctx.font = '10px ui-monospace,Consolas,monospace';
+    ctx.fillStyle = '#6f7d9d';
+    const stepF = Math.max(10, Math.ceil((f1 - f0) / 12 / 10) * 10);
+    ctx.textAlign = 'center';
+    for (let f = Math.ceil(f0 / stepF) * stepF; f <= f1; f += stepF) {
+      const x = xf(f);
+      ctx.strokeStyle = 'rgba(255,255,255,.05)';
+      ctx.beginPath(); ctx.moveTo(x, 40); ctx.lineTo(x, 300); ctx.stroke();
+      ctx.fillText('F' + Math.round(f), x, 312);
+    }
+    ctx.textAlign = 'left';
+
+    const laneLabel = (name, y, color) => {
+      ctx.font = '11px ui-monospace,Consolas,monospace';
+      ctx.fillStyle = color;
+      ctx.fillText(name, 14, y + 4);
+    };
+
+    // 服务器车道
+    laneLabel('服务器', LANE.server, '#c9d5f8');
+    ctx.strokeStyle = '#26345a'; ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(X0, LANE.server); ctx.lineTo(X1, LANE.server); ctx.stroke();
+    ctx.fillStyle = '#4cc9f0';
+    ctx.beginPath(); ctx.arc(xf(sim.server), LANE.server, 6, 0, Math.PI * 2); ctx.fill();
+    ctx.font = '10px ui-monospace,Consolas,monospace';
+    ctx.fillText('F' + Math.floor(sim.server), xf(sim.server) + 10, LANE.server - 8);
+
+    // 快照 / 输入日志车道
+    laneLabel('快照+日志', LANE.log, '#c9d5f8');
+    ctx.strokeStyle = '#26345a';
+    ctx.beginPath(); ctx.moveTo(X0, LANE.log); ctx.lineTo(X1, LANE.log); ctx.stroke();
+    if (sim.started) {
+      const sx = xf(sim.snapshot), cx = xf(sim.client), svx = xf(sim.server);
+      // 未追上的输入日志（红）
+      ctx.fillStyle = 'rgba(255,107,139,.16)';
+      ctx.fillRect(cx, LANE.log - 12, Math.max(0, svx - cx), 24);
+      // 已重放的输入日志（绿）
+      ctx.fillStyle = 'rgba(110,231,168,.25)';
+      ctx.fillRect(sx, LANE.log - 12, Math.max(0, cx - sx), 24);
+      // 快照标记
+      ctx.fillStyle = '#ffe066';
+      ctx.beginPath();
+      ctx.moveTo(sx, LANE.log - 16);
+      ctx.lineTo(sx - 7, LANE.log - 26);
+      ctx.lineTo(sx + 7, LANE.log - 26);
+      ctx.closePath(); ctx.fill();
+      ctx.font = '10px ui-monospace,Consolas,monospace';
+      ctx.fillStyle = '#ffe066';
+      ctx.fillText('全量快照 F' + Math.floor(sim.snapshot) + '（4.8 KB）', sx + 10, LANE.log - 30);
+      // 正在回放的帧
+      if (sim.phase === 'catchup') {
+        ctx.strokeStyle = '#6ee7a8';
+        ctx.lineWidth = 2;
+        ctx.beginPath(); ctx.moveTo(cx, LANE.log - 16); ctx.lineTo(cx, LANE.log + 16); ctx.stroke();
+      }
+    } else {
+      ctx.fillStyle = '#6f7d9d';
+      ctx.font = '11px system-ui,"Microsoft YaHei",sans-serif';
+      ctx.fillText('点「重连并追帧」后，这里显示快照与待重放的输入日志', X0 + 8, LANE.log + 4);
+    }
+
+    // 客户端车道
+    laneLabel('客户端', LANE.client, '#c9d5f8');
+    ctx.strokeStyle = '#26345a';
+    ctx.beginPath(); ctx.moveTo(X0, LANE.client); ctx.lineTo(X1, LANE.client); ctx.stroke();
+    if (sim.started) {
+      // 落后区间
+      ctx.fillStyle = 'rgba(255,107,139,.14)';
+      ctx.fillRect(xf(sim.client), LANE.client - 10, Math.max(0, xf(sim.server) - xf(sim.client)), 20);
+      ctx.fillStyle = '#6ee7a8';
+      ctx.beginPath(); ctx.arc(xf(sim.client), LANE.client, 6, 0, Math.PI * 2); ctx.fill();
+      ctx.font = '10px ui-monospace,Consolas,monospace';
+      ctx.fillStyle = '#bfe8d2';
+      ctx.fillText('F' + Math.floor(sim.client), xf(sim.client) + 10, LANE.client - 8);
+    }
+
+    // 阶段说明
+    ctx.font = '600 12px system-ui,"Microsoft YaHei",sans-serif';
+    ctx.textAlign = 'right';
+    if (sim.phase === 'idle') {
+      ctx.fillStyle = '#8a96b8';
+      ctx.fillText('未重连', X1, 24);
+    } else if (sim.phase === 'snapshot') {
+      ctx.fillStyle = '#ffe066';
+      ctx.fillText('① 接收全量快照中…', X1, 24);
+    } else if (sim.phase === 'catchup') {
+      ctx.fillStyle = '#6ee7a8';
+      ctx.fillText('② 以 ' + sim.speed + '× 速度回放追赶（不渲染中间帧）', X1, 24);
+    } else {
+      ctx.fillStyle = '#9df0c4';
+      ctx.fillText('③ 已追上，恢复 60Hz 实时', X1, 24);
+    }
+    ctx.textAlign = 'left';
+
+    // 说明条
+    ctx.fillStyle = '#0d1628';
+    ctx.fillRect(10, 322, W - 20, 12);
+  }
+
+  function updateStats() {
+    const gap = Math.max(0, sim.server - sim.client);
+    setT('cuServer', 'F' + Math.floor(sim.server));
+    setT('cuClient', 'F' + Math.floor(sim.client));
+    setT('cuGap', String(Math.round(gap)));
+    setT('cuRate', sim.phase === 'catchup' ? sim.speed + '×' : '—');
+    setT('cuReplayed', String(Math.round(sim.replayed)));
+    const eta = gap > 0 && sim.speed > 1 ? gap / ((sim.speed - 1) * 60) : 0;
+    setT('cuEta', gap > 0 ? eta.toFixed(1) + ' s' : '已追上');
+    // 进度按「真实缩小的差距」计算（追帧期间服务器也在前进）
+    const pct = sim.initialGap > 0 ? clamp((1 - gap / sim.initialGap) * 100, 0, 100) : 100;
+    $('#cuBar').style.width = pct.toFixed(1) + '%';
+    setT('cuPct', Math.round(pct) + '%');
+    const st = $('#cuState');
+    const map = { idle: ['未重连', ''], snapshot: ['接收快照', 'o'], catchup: ['追帧中', 'c'], live: ['已追上', 'g'] };
+    const m = map[sim.phase] || map.idle;
+    st.textContent = m[0];
+    st.className = 'chip ' + m[1];
+    const conc = $('#cuConc');
+    if (conc) {
+      if (sim.phase === 'idle') {
+        conc.textContent = '当前模拟：服务器已运行到 F' + Math.floor(sim.server) +
+          '。点「重连并追帧」从 F' + Math.max(0, Math.floor(sim.server - sim.behind)) +
+          ' 的全量快照开始，以 ' + sim.speed + '× 速度重放。';
+      } else if (sim.phase === 'catchup') {
+        conc.textContent = '正在回放：已重放 ' + Math.round(sim.replayed) + ' 帧，还差 ' +
+          Math.round(gap) + ' 帧；按当前 ' + sim.speed + '× 速度约需 ' + eta.toFixed(1) + ' 秒（服务器还在以 60Hz 前进）。';
+      } else if (sim.phase === 'live') {
+        conc.textContent = '已追上实时帧：共重放 ' + Math.round(sim.replayed) + ' 帧，客户端恢复 60Hz 与服务器同步。';
+      } else {
+        conc.textContent = '全量快照到货：包含完整实体状态、随机数状态、本局种子与计时器，后续输入日志正等着重放。';
+      }
+    }
+  }
+
+  const ticker = makeTicker((dt) => {
+    tick(dt);
+    draw();
+    updateStats();
+  });
+  enters.catchup = () => ticker.start();
+  leaves.catchup = () => { ticker.stop(); sim.playing = false; };
+
+  $('#cuPlay').addEventListener('click', () => {
+    if (sim.phase === 'idle' || sim.phase === 'live') {
+      begin();
+    } else {
+      sim.playing = !sim.playing;
+      $('#cuPlay').textContent = sim.playing ? '⏸ 暂停' : '▶ 继续';
+    }
+  });
+  $('#cuSpeed').addEventListener('click', (e) => {
+    const b = e.target.closest('button');
+    if (!b) return;
+    sim.speed = +b.dataset.v;
+    $$('#cuSpeed button').forEach((x) => x.classList.toggle('on', x === b));
+  });
+  $('#cuBehind').addEventListener('input', (e) => {
+    sim.behind = +e.target.value;
+    setT('cuBehindV', sim.behind + ' 帧');
+    if (sim.phase === 'idle') updateStats();
+  });
+  $('#cuReset').addEventListener('click', reset);
+
+  reset();
+};
+
+/* ============================================================================
+   八、模块 ⑤ 状态同步（预测 / 校正 / 插值）
+   ========================================================================== */
+mounts.statesync = function () {
+  const W = 1040, H = 148;
+  const ctx = setupCanvas($('#ssTrack'), W, H);
+  const EW = 1040, EH = 190;
+  const ectx = setupCanvas($('#ssErrChart'), EW, EH);
+  const SPEED = 320, MINX = 60, MAXX = 980, BUF_MS = 100;
+
+  const sim = {
+    now: 0, acc: 0,
+    server: { x: 520, tickTimer: 0, tick: 0, pushAt: 1300, inputs: {}, nextFrame: 0 },
+    client: {
+      pred: 520, render: 520, seq: -1, hist: [], inputs: {}, buffer: [],
+      renderOffset: 0, lastSnap: null, err: 0, errSum: 0, errN: 0
+    },
+    net: [], errSamples: [], corrMarks: [], pushes: [],
+    snapCount: 0, corrCount: 0,
+    keys: { left: false, right: false }, auto: true
+  };
+
+  function currentParams() {
+    return {
+      rtt: +$('#ssRtt').value,
+      jitter: +$('#ssJitter').value,
+      predict: $('#ssPredict').checked,
+      correct: $('#ssCorrect').checked,
+      interp: $('#ssInterp').checked
+    };
+  }
+  function netDelay(p) {
+    return p.rtt / 2 + Math.random() * p.jitter;
+  }
+  function sampleBuffer(renderTime) {
+    const b = sim.client.buffer;
+    if (!b.length) return sim.client.render;
+    if (renderTime <= b[0].sentAt) return b[0].x;
+    for (let i = b.length - 1; i > 0; i--) {
+      if (b[i - 1].sentAt <= renderTime) {
+        const a = b[i - 1], c = b[i];
+        const f = (renderTime - a.sentAt) / Math.max(1, c.sentAt - a.sentAt);
+        return lerp(a.x, c.x, clamp(f, 0, 1));
+      }
+    }
+    return b[b.length - 1].x;
+  }
+  function autoDir() {
+    const cyc = sim.now % 2600;
+    return cyc < 1100 ? 1 : cyc < 1300 ? 0 : cyc < 2400 ? -1 : 0;
+  }
+
+  function reset() {
+    sim.now = 0; sim.acc = 0;
+    sim.server = { x: 520, tickTimer: 0, tick: 0, pushAt: 1300, inputs: {}, nextFrame: 0 };
+    sim.client = {
+      pred: 520, render: 520, seq: -1, hist: [], inputs: {}, buffer: [],
+      renderOffset: 0, lastSnap: null, err: 0, errSum: 0, errN: 0
+    };
+    sim.net = []; sim.errSamples = []; sim.corrMarks = []; sim.pushes = [];
+    sim.snapCount = 0; sim.corrCount = 0;
+    updateStats();
+    drawTrack();
+    drawErr();
+  }
+
+  /* ---- 主循环：60Hz 客户端输入、20Hz 服务器 tick ---- */
+  function tick(dt) {
+    const p = currentParams();
+    sim.now += dt;
+    const dir = sim.auto ? autoDir() : ((sim.keys.right ? 1 : 0) - (sim.keys.left ? 1 : 0));
+
+    // 客户端：每帧采集输入、本地预测、记录「帧号 → 预测位置」历史
+    sim.acc += dt;
+    let guard = 0;
+    while (sim.acc >= 1000 / 60 && guard++ < 10) {
+      sim.acc -= 1000 / 60;
+      sim.client.seq++;
+      const frame = sim.client.seq;
+      sim.client.inputs[frame] = dir;
+      if (p.predict) {
+        sim.client.pred = clamp(sim.client.pred + (dir * SPEED) / 60, MINX, MAXX);
+      }
+      sim.client.hist.push({ f: frame, x: sim.client.pred });
+      while (sim.client.hist.length > 320) sim.client.hist.shift();
+      if (frame % 120 === 0) {
+        for (const k in sim.client.inputs) if (+k < frame - 300) delete sim.client.inputs[k];
+      }
+      sim.net.push({ dir: 'up', arriveAt: sim.now + netDelay(p), frame, move: dir });
+    }
+
+    // 服务器：20Hz 权威 tick；每次 tick 吃掉 3 个客户端帧的输入（按帧号对齐）
+    sim.server.tickTimer += dt;
+    while (sim.server.tickTimer >= 50) {
+      sim.server.tickTimer -= 50;
+      sim.server.tick++;
+      let consumed = 0;
+      while (consumed < 3) {
+        const fr = sim.server.nextFrame;
+        const d = sim.server.inputs[fr];
+        if (d === undefined) break;          // 输入还没到：本 tick 少算一帧（服务器落后）
+        delete sim.server.inputs[fr];
+        sim.server.x = clamp(sim.server.x + (d * SPEED) / 60, MINX, MAXX);
+        sim.server.nextFrame++;
+        consumed++;
+      }
+      // 服务器端不可预测事件：推搡（客户端无法先验知道）
+      if (sim.now > sim.server.pushAt) {
+        const push = (Math.random() < 0.5 ? -1 : 1) * (40 + Math.random() * 50);
+        sim.server.x = clamp(sim.server.x + push, MINX, MAXX);
+        sim.server.pushAt = sim.now + 1100 + Math.random() * 900;
+        sim.pushes.push({ t: sim.now, x: sim.server.x });
+        if (sim.pushes.length > 40) sim.pushes.shift();
+      }
+      if (sim.server.tick % 60 === 0) {
+        for (const k in sim.server.inputs) if (+k < sim.server.nextFrame - 300) delete sim.server.inputs[k];
+      }
+      sim.net.push({
+        dir: 'down', arriveAt: sim.now + netDelay(p), sentAt: sim.now,
+        x: sim.server.x, tick: sim.server.tick, ack: sim.server.nextFrame - 1
+      });
+    }
+
+    // 网络：到达的包生效
+    for (const pk of sim.net) {
+      if (pk.done || pk.arriveAt > sim.now) continue;
+      pk.done = true;
+      if (pk.dir === 'up') {
+        sim.server.inputs[pk.frame] = pk.move;
+      } else {
+        handleSnapshot(pk, p);
+      }
+    }
+    sim.net = sim.net.filter((pk) => !pk.done);
+
+    // 渲染：预测立即响应；插值只平滑「校正回弹」或渲染快照缓冲
+    if (p.predict) {
+      if (p.interp && sim.client.renderOffset !== 0) {
+        sim.client.renderOffset *= Math.max(0, 1 - dt / 140);
+        if (Math.abs(sim.client.renderOffset) < 0.3) sim.client.renderOffset = 0;
+      } else if (!p.interp) {
+        sim.client.renderOffset = 0;
+      }
+      sim.client.render = sim.client.pred - sim.client.renderOffset;
+    } else if (p.interp) {
+      const renderTime = sim.now - p.rtt / 2 - BUF_MS;
+      sim.client.render = sampleBuffer(renderTime);
+    }
+    // 误差采样（每 100ms 一个点）
+    if (sim.errSamples.length === 0 || sim.now - sim.errSamples[sim.errSamples.length - 1].t > 100) {
+      sim.errSamples.push({ t: sim.now, v: p.predict ? sim.client.err : 0 });
+      if (sim.errSamples.length > 200) sim.errSamples.shift();
+    }
+  }
+
+  /* 收到快照：从「快照确认帧」开始，用本地输入重放，得到当前帧应有位置；
+     与当前预测位置比较，差值就是预测误差（校正量），再按需平滑回正。 */
+  function handleSnapshot(pk, p) {
+    sim.snapCount++;
+    sim.client.lastSnap = pk;
+    if (!p.predict) {
+      sim.client.err = 0;
+      if (p.interp) {
+        sim.client.buffer.push({ sentAt: pk.sentAt, x: pk.x });
+        while (sim.client.buffer.length > 24) sim.client.buffer.shift();
+      } else {
+        sim.client.render = pk.x;
+      }
+      return;
+    }
+    const ack = pk.ack;
+    if (ack < 0) return;
+    const hist = sim.client.hist;
+    let base = null;
+    for (let i = hist.length - 1; i >= 0; i--) {
+      if (hist[i].f === ack) { base = hist[i].x; break; }
+    }
+    if (base === null) return;               // 历史已被淘汰，跳过这次快照
+    // 从权威状态出发、用本地输入重放到当前帧
+    let x = pk.x;
+    for (let f = ack + 1; f <= sim.client.seq; f++) {
+      const d = sim.client.inputs[f];
+      if (d === undefined) break;
+      x = clamp(x + (d * SPEED) / 60, MINX, MAXX);
+    }
+    const delta = x - sim.client.pred;
+    sim.client.err = Math.abs(delta);
+    sim.client.errSum += Math.abs(delta);
+    sim.client.errN++;
+    if (p.correct) {
+      sim.client.pred = x;                   // 逻辑状态对齐（历史也一起修正）
+      for (const rec of hist) {
+        if (rec.f > ack) {
+          let px = pk.x;
+          for (let f = ack + 1; f <= rec.f; f++) {
+            const d = sim.client.inputs[f];
+            if (d === undefined) break;
+            px = clamp(px + (d * SPEED) / 60, MINX, MAXX);
+          }
+          rec.x = px;
+        }
+      }
+      if (Math.abs(delta) > 0.3) {
+        sim.client.renderOffset = p.interp ? delta : 0;
+        sim.corrCount++;
+        sim.corrMarks.push({ t: sim.now, d: delta });
+        if (sim.corrMarks.length > 40) sim.corrMarks.shift();
+      }
+    }
+  }
+
+  /* ---- 绘制：轨道 ---- */
+  function wx(x) { return 22 + (x / 1000) * 996; }
+  function drawTrack() {
+    const TY = 100;                              // 轨道基准线
+    ctx.clearRect(0, 0, W, H);
+    ctx.fillStyle = '#0a1322';
+    ctx.fillRect(0, 0, W, H);
+    // 刻度
+    ctx.strokeStyle = '#1c2947';
+    ctx.font = '9.5px ui-monospace,Consolas,monospace';
+    ctx.fillStyle = '#5f7099';
+    ctx.textAlign = 'center';
+    for (let gx = 0; gx <= 1000; gx += 100) {
+      const x = wx(gx);
+      ctx.beginPath(); ctx.moveTo(x, TY); ctx.lineTo(x, TY + 8); ctx.stroke();
+      ctx.fillText(gx, x, TY + 20);
+    }
+    ctx.textAlign = 'left';
+    // 轨道
+    ctx.strokeStyle = '#26345a';
+    ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(wx(0), TY); ctx.lineTo(wx(1000), TY); ctx.stroke();
+    // 服务器真实位置（绿色空心）
+    ctx.strokeStyle = '#6ee7a8';
+    ctx.lineWidth = 2;
+    ctx.strokeRect(wx(sim.server.x) - 13, TY - 33, 26, 26);
+    // 客户端渲染位置（蓝色实心）
+    ctx.fillStyle = '#4cc9f0';
+    ctx.fillRect(wx(sim.client.render) - 13, TY - 33, 26, 26);
+    // 校正目标（紫色虚线）：平滑回正时预测状态所在的终点
+    if (Math.abs(sim.client.renderOffset) > 0.5) {
+      const target = sim.client.pred;
+      ctx.strokeStyle = '#b388ff';
+      ctx.setLineDash([4, 4]);
+      ctx.lineWidth = 1.5;
+      ctx.strokeRect(wx(target) - 13, TY - 33, 26, 26);
+      ctx.setLineDash([]);
+    }
+    // 画面 vs 服务器：预测开启时是「预测领先量」，关闭时是「画面滞后量」
+    const err = Math.abs(sim.server.x - sim.client.render);
+    if (err > 2) {
+      const x1 = wx(sim.server.x), x2 = wx(sim.client.render);
+      const mx = Math.min(x1, x2);
+      const y = TY - 52;
+      ctx.strokeStyle = 'rgba(255,107,139,.75)';
+      ctx.beginPath(); ctx.moveTo(mx, y); ctx.lineTo(mx + Math.abs(x2 - x1), y); ctx.stroke();
+      ctx.font = '10px ui-monospace,Consolas,monospace';
+      ctx.fillStyle = '#ff9db3';
+      ctx.textAlign = 'center';
+      const predictOn = $('#ssPredict').checked;
+      ctx.fillText((predictOn ? '预测领先 ' : '画面滞后 ') + err.toFixed(0) + 'px', (x1 + x2) / 2, y - 6);
+      ctx.textAlign = 'left';
+    }
+    // 推搡事件
+    for (const pu of sim.pushes) {
+      const age = sim.now - pu.t;
+      if (age > 1000) continue;
+      ctx.globalAlpha = 1 - age / 1000;
+      ctx.fillStyle = '#ff6b8b';
+      ctx.font = '13px system-ui';
+      ctx.fillText('✦', wx(pu.x) - 5, TY - 58);
+      ctx.globalAlpha = 1;
+    }
+    // 图例
+    ctx.font = '10.5px ui-monospace,Consolas,monospace';
+    ctx.fillStyle = '#8a96b8';
+    ctx.fillText('■ 绿色空心 = 服务器真实   ■ 蓝色实心 = 客户端渲染   ■ 紫色虚线 = 校正目标' +
+      '   （红色 ✦ = 服务器端的不可预测推搡）', 22, 22);
+  }
+
+  /* ---- 绘制：误差曲线 ---- */
+  function drawErr() {
+    ectx.clearRect(0, 0, EW, EH);
+    ectx.fillStyle = '#0a1322';
+    ectx.fillRect(0, 0, EW, EH);
+    const L = 52, R = 16, TOP = 26, BOT = 28;
+    const t0 = Math.max(0, sim.now - 12000);
+    const t1 = Math.max(sim.now, 12000);
+    const maxV = Math.max(5, ...sim.errSamples.map((s) => s.v));
+    const lx = (t) => L + ((t - t0) / Math.max(1, t1 - t0)) * (EW - L - R);
+    const ly = (v) => TOP + (1 - clamp(v, 0, maxV) / maxV) * (EH - TOP - BOT);
+    // 网格
+    for (let i = 0; i <= 4; i++) {
+      const v = (maxV * i) / 4;
+      const y = ly(v);
+      ectx.strokeStyle = '#1c2947';
+      ectx.beginPath(); ectx.moveTo(L, y); ectx.lineTo(EW - R, y); ectx.stroke();
+      ectx.font = '9.5px ui-monospace,Consolas,monospace';
+      ectx.fillStyle = '#5f7099';
+      ectx.textAlign = 'right';
+      ectx.fillText(v.toFixed(0), L - 6, y + 3);
+      ectx.textAlign = 'left';
+    }
+    ectx.fillStyle = '#8a96b8';
+    ectx.font = '10px ui-monospace,Consolas,monospace';
+    ectx.fillText('px', 16, TOP - 8);
+    // 采样点
+    const pts = sim.errSamples.filter((s) => s.t >= t0);
+    if (pts.length > 1) {
+      ectx.fillStyle = 'rgba(255,107,139,.12)';
+      ectx.beginPath();
+      ectx.moveTo(lx(pts[0].t), ly(0));
+      for (const s of pts) ectx.lineTo(lx(s.t), ly(s.v));
+      ectx.lineTo(lx(pts[pts.length - 1].t), ly(0));
+      ectx.closePath(); ectx.fill();
+      ectx.strokeStyle = '#ff6b8b';
+      ectx.lineWidth = 1.8;
+      ectx.beginPath();
+      ectx.moveTo(lx(pts[0].t), ly(pts[0].v));
+      for (const s of pts) ectx.lineTo(lx(s.t), ly(s.v));
+      ectx.stroke();
+    }
+    // 校正标记
+    for (const m of sim.corrMarks) {
+      if (m.t < t0) continue;
+      ectx.strokeStyle = 'rgba(255,224,102,.9)';
+      ectx.lineWidth = 1.5;
+      ectx.beginPath();
+      ectx.moveTo(lx(m.t), EH - BOT);
+      ectx.lineTo(lx(m.t), EH - BOT - 10);
+      ectx.stroke();
+    }
+    ectx.font = '10px ui-monospace,Consolas,monospace';
+    ectx.fillStyle = '#8a96b8';
+    ectx.fillText('预测误差 / 校正量（快照重放后的位置差，px）· 黄色竖线 = 一次校正', L, EH - 8);
+  }
+
+  /* ---- DOM 状态 ---- */
+  function updateStats() {
+    const p = currentParams();
+    let lagText;
+    if (p.predict) lagText = '≈ 0 ms（本地立即）';
+    else if (p.interp) lagText = Math.round(p.rtt / 2 + BUF_MS) + ' ms';
+    else lagText = Math.round(p.rtt / 2 + 25) + ' ms';
+    setT('ssLag', lagText);
+    setT('ssErr', sim.client.err.toFixed(1) + ' px');
+    const avg = sim.client.errN > 0 ? sim.client.errSum / sim.client.errN : 0;
+    setT('ssErrAvg', avg.toFixed(2) + ' px');
+    setT('ssCorr', String(sim.corrCount));
+    setT('ssBuf', p.interp ? '100 ms（2 tick）' : '关闭');
+    const chip = $('#ssModeChip');
+    if (chip) {
+      chip.textContent = (p.predict ? '预测开' : '预测关') + ' · ' +
+        (p.correct ? '校正开' : '校正关') + ' · ' + (p.interp ? '插值开' : '插值关');
+    }
+    const conc = $('#ssConc');
+    if (conc) {
+      let msg = '当前 RTT ' + p.rtt + 'ms、抖动 ' + p.jitter + 'ms。';
+      if (p.predict && p.correct) msg += '本地立即响应，快照到达后用增量把预测拉回权威值' +
+        (p.interp ? '（平滑过渡 → 轻微回弹）' : '（立即回正 → 可能瞬移）') + '。';
+      else if (p.predict && !p.correct) msg += '预测从不回正：服务器推搡后误差会一直漂，画面会逐渐失真。';
+      else if (!p.predict && p.interp) msg += '纯快照 + 插值：画面平滑但落后约一个缓冲周期。';
+      else msg += '纯快照渲染：每次快照到达才更新，看到的是 RTT/2 之前的服务器状态。';
+      conc.textContent = msg;
+    }
+  }
+
+  const ticker = makeTicker((dt) => {
+    tick(dt);
+    drawTrack();
+    drawErr();
+    updateStats();
+  });
+  enters.statesync = () => {
+    ticker.start();
+    $('#ssRun').textContent = '⏸ 暂停';
+  };
+  leaves.statesync = () => ticker.stop();
+
+  $('#ssRtt').addEventListener('input', (e) => setT('ssRttV', e.target.value + ' ms'));
+  $('#ssJitter').addEventListener('input', (e) => setT('ssJitterV', e.target.value + ' ms'));
+  $('#ssReset').addEventListener('click', reset);
+  $('#ssStep').addEventListener('click', () => {
+    if (ticker.running) { ticker.stop(); $('#ssRun').textContent = '▶ 运行'; }
+    const target = sim.now + 100;      // 单步 = 前进 100ms（约 6 个客户端帧 / 2 个服务器 tick）
+    let guard = 0;
+    while (sim.now < target && guard++ < 20) tick(1000 / 60);
+    drawTrack();
+    drawErr();
+    updateStats();
+  });
+  $('#ssRun').addEventListener('click', () => {
+    if (ticker.running) { ticker.stop(); $('#ssRun').textContent = '▶ 运行'; }
+    else { ticker.start(); $('#ssRun').textContent = '⏸ 暂停'; }
+  });
+  $('#ssAuto').addEventListener('change', (e) => {
+    sim.auto = e.target.checked;
+  });
+  const setKey = (k, v) => { sim.keys[k] = v; if (v) { sim.auto = false; const a = $('#ssAuto'); if (a) a.checked = false; } };
+  $('#ssLeft').addEventListener('pointerdown', () => setKey('left', true));
+  $('#ssRight').addEventListener('pointerdown', () => setKey('right', true));
+  window.addEventListener('pointerup', () => { sim.keys.left = false; sim.keys.right = false; });
+  document.addEventListener('keydown', (e) => {
+    if (currentPage !== 'statesync') return;
+    if (e.target && /INPUT|TEXTAREA/.test(e.target.tagName || '')) return;
+    if (e.key === 'a' || e.key === 'A' || e.key === 'ArrowLeft') { setKey('left', true); e.preventDefault(); }
+    if (e.key === 'd' || e.key === 'D' || e.key === 'ArrowRight') { setKey('right', true); e.preventDefault(); }
+  });
+  document.addEventListener('keyup', (e) => {
+    if (e.key === 'a' || e.key === 'A' || e.key === 'ArrowLeft') sim.keys.left = false;
+    if (e.key === 'd' || e.key === 'D' || e.key === 'ArrowRight') sim.keys.right = false;
+  });
+
+  reset();
+  ticker.start();
+};
+
+/* ============================================================================
+   九、模块 ⑥ 带宽对比
+   ========================================================================== */
+mounts.bandwidth = function () {
+  const N_CLIENTS = 8, N_PLAYERS = 2;
+  const ENT_BYTES = 16, HDR = 8, INPUT_BYTES = 16;
+
+  function calc(N, tick, dp) {
+    const lockstep = N_PLAYERS * INPUT_BYTES * tick;
+    const full = (HDR + N * ENT_BYTES) * N_CLIENTS * tick;
+    const changed = Math.max(1, Math.ceil((N * dp) / 100));
+    const bitmap = Math.ceil(N / 8);
+    const inc = (HDR + changed * ENT_BYTES + bitmap) * N_CLIENTS * tick;
+    return { lockstep, full, inc, changed, bitmap };
+  }
+
+  function drawChart(svg, opt) {
+    const W = 560, H = 300, L = 62, R = 16, TOP = 30, BOT = 40;
+    const yMin = 100, yMax = 10 * 1024 * 1024;
+    const lx = (v) => L + ((v - opt.xMin) / (opt.xMax - opt.xMin)) * (W - L - R);
+    const ly = (v) => TOP + (1 - (Math.log10(clamp(v, yMin, yMax)) - Math.log10(yMin)) /
+      (Math.log10(yMax) - Math.log10(yMin))) * (H - TOP - BOT);
+    let s = '<rect width="' + W + '" height="' + H + '" rx="8" fill="#0b1322"/>';
+    // 纵向网格（速率数量级）
+    const Y_LABELS = ['100 B/s', '1 KB/s', '10 KB/s', '100 KB/s', '1 MB/s', '10 MB/s'];
+    for (let e = 2; e <= 7; e++) {
+      const v = Math.pow(10, e);
+      const y = ly(v);
+      s += '<line x1="' + L + '" y1="' + y.toFixed(1) + '" x2="' + (W - R) + '" y2="' + y.toFixed(1) +
+        '" stroke="#1c2947" stroke-width="1"/>';
+      s += '<text x="' + (L - 6) + '" y="' + (y + 3.5).toFixed(1) +
+        '" fill="#6f7d9d" font-size="9.5" text-anchor="end" font-family="monospace">' +
+        Y_LABELS[e - 2] + '</text>';
+    }
+    // 横向网格
+    for (const t of opt.xTicks) {
+      const x = lx(t);
+      s += '<line x1="' + x.toFixed(1) + '" y1="' + TOP + '" x2="' + x.toFixed(1) + '" y2="' + (H - BOT) +
+        '" stroke="rgba(255,255,255,.035)"/>';
+      s += '<text x="' + x.toFixed(1) + '" y="' + (H - BOT + 15) +
+        '" fill="#6f7d9d" font-size="9.5" text-anchor="middle" font-family="monospace">' + t + '</text>';
+    }
+    s += '<text x="' + (W - R) + '" y="' + (H - 6) +
+      '" fill="#8a96b8" font-size="10" text-anchor="end" font-family="monospace">' + opt.xLabel + '</text>';
+    // 曲线
+    for (const sr of opt.series) {
+      let d = '';
+      for (let i = 0; i < sr.points.length; i++) {
+        const pt = sr.points[i];
+        d += (i === 0 ? 'M' : 'L') + lx(pt[0]).toFixed(1) + ' ' + ly(pt[1]).toFixed(1);
+      }
+      s += '<path d="' + d + '" fill="none" stroke="' + sr.color + '" stroke-width="' + (sr.width || 2) +
+        '" stroke-linejoin="round"/>';
+    }
+    // 图例
+    let lx0 = L + 4;
+    for (const sr of opt.series) {
+      s += '<rect x="' + lx0 + '" y="10" width="9" height="9" rx="2" fill="' + sr.color + '"/>';
+      s += '<text x="' + (lx0 + 13) + '" y="18" fill="#b9c6e8" font-size="10" font-family="monospace">' +
+        sr.name + '</text>';
+      lx0 += 92;
+    }
+    // 当前参数标记
+    if (opt.curX !== null && opt.curX !== undefined) {
+      const x = lx(opt.curX);
+      s += '<line x1="' + x.toFixed(1) + '" y1="' + TOP + '" x2="' + x.toFixed(1) + '" y2="' + (H - BOT) +
+        '" stroke="rgba(76,201,240,.45)" stroke-dasharray="4 4"/>';
+      for (const sr of opt.series) {
+        const val = opt.curVals[sr.key];
+        const y = ly(val);
+        s += '<circle cx="' + x.toFixed(1) + '" cy="' + y.toFixed(1) + '" r="3.5" fill="' + sr.color + '"/>';
+      }
+    }
+    svg.innerHTML = s;
+  }
+
+  function render() {
+    const N = +$('#bwEnt').value;
+    const tick = +$('#bwTick').value;
+    const dp = +$('#bwDelta').value;
+    const v = calc(N, tick, dp);
+    setT('bwEntV', String(N));
+    setT('bwTickV', tick + ' Hz');
+    setT('bwDeltaV', dp + ' %');
+    setT('bwLock', fmtBytes(v.lockstep));
+    setT('bwFull', fmtBytes(v.full));
+    setT('bwInc', fmtBytes(v.inc));
+    setT('bwRatio', (v.full / Math.max(1, v.lockstep)).toFixed(0) + '×');
+    setT('bwPkt', fmtSize(HDR + N * ENT_BYTES));
+
+    const COL = { lockstep: '#6ee7a8', full: '#ff6b8b', inc: '#ffb86b' };
+    // 随实体数
+    const ptsN = [];
+    for (let i = 0; i <= 80; i++) {
+      const n = Math.max(1, Math.round(1 + ((500 - 1) * i) / 80));
+      ptsN.push({ n, c: calc(n, tick, dp) });
+    }
+    drawChart($('#bwChartEnt'), {
+      xMin: 1, xMax: 500, xTicks: [1, 50, 100, 200, 300, 400, 500], xLabel: '实体数 N',
+      curX: N, curVals: v,
+      series: [
+        { key: 'lockstep', name: '锁步输入', color: COL.lockstep, points: ptsN.map((p) => [p.n, p.c.lockstep]) },
+        { key: 'full', name: '全量快照', color: COL.full, points: ptsN.map((p) => [p.n, p.c.full]) },
+        { key: 'inc', name: '增量快照', color: COL.inc, points: ptsN.map((p) => [p.n, p.c.inc]) }
+      ]
+    });
+    // 随 tick 率
+    const ptsT = [];
+    for (let t = 10; t <= 60; t++) ptsT.push({ t, c: calc(N, t, dp) });
+    drawChart($('#bwChartTick'), {
+      xMin: 10, xMax: 60, xTicks: [10, 20, 30, 40, 50, 60], xLabel: 'tick 率（Hz）',
+      curX: tick, curVals: v,
+      series: [
+        { key: 'lockstep', name: '锁步输入', color: COL.lockstep, points: ptsT.map((p) => [p.t, p.c.lockstep]) },
+        { key: 'full', name: '全量快照', color: COL.full, points: ptsT.map((p) => [p.t, p.c.full]) },
+        { key: 'inc', name: '增量快照', color: COL.inc, points: ptsT.map((p) => [p.t, p.c.inc]) }
+      ]
+    });
+  }
+
+  ['bwEnt', 'bwTick', 'bwDelta'].forEach((id) => {
+    $('#' + id).addEventListener('input', render);
+  });
+  render();
+};
+
+/* ============================================================================
+   十、模块 ⑦ 回滚重放（GGPO 式）
+   ========================================================================== */
+mounts.rollback = function () {
+  const W = 1040, H = 430;
+  const ctx = setupCanvas($('#rbCanvas'), W, H);
+  const MOVE = 7, MINX = 70, MAXX = 970, START = 300;
+
+  const S = {
+    frame: -1, base: 0, hist: [], actual: {},
+    delayFrames: 3, localDir: 1, realDir: 0,
+    wrong: 0, confirmed: 0, rollbacks: 0, rbFrames: 0,
+    rbEvents: [], lastRb: null,
+    rng: 987654321, playing: false, acc: 0
+  };
+  function rng01() {
+    S.rng = (S.rng * 1664525 + 1013904223) >>> 0;
+    return S.rng / 4294967296;
+  }
+  function idxOf(f) { return f - S.base; }
+  function recOf(f) {
+    const i = idxOf(f);
+    return i >= 0 && i < S.hist.length ? S.hist[i] : null;
+  }
+  function delayFramesFromRtt(rtt) {
+    return Math.max(0, Math.round(rtt / 2 / (1000 / 60)));
+  }
+
+  function reset() {
+    S.frame = -1; S.base = 0; S.hist = []; S.actual = {};
+    S.delayFrames = delayFramesFromRtt(+$('#rbRtt').value);
+    S.localDir = 1; S.realDir = 0;
+    S.wrong = 0; S.confirmed = 0; S.rollbacks = 0; S.rbFrames = 0;
+    S.rbEvents = []; S.lastRb = null;
+    S.rng = 987654321; S.playing = false; S.acc = 0;
+    $('#rbRun').textContent = '▶ 运行';
+    updateStats();
+    draw();
+  }
+
+  /* 回滚重放：从 g 帧开始，用已知真值输入重建「预测轨迹」 */
+  function replayFrom(g, upto) {
+    let baseX = (() => {
+      const prev = recOf(g - 1);
+      return prev ? prev.truthX : START;
+    })();
+    const dir = S.actual[g] === undefined ? 0 : S.actual[g];
+    for (let k = g; k <= upto; k++) {
+      const rec = recOf(k);
+      if (!rec) continue;
+      rec.predDir = dir;
+      rec.predX = clamp(baseX + dir * MOVE, MINX, MAXX);
+      baseX = rec.predX;
+    }
+  }
+
+  function stepFrame() {
+    const f = S.frame + 1;
+    const D = S.delayFrames;
+    // 1) 远端真实输入：以「变化率」随机改变方向（这是模拟器知道的真值）
+    if (rng01() < +$('#rbChange').value / 100) {
+      const r = rng01();
+      S.realDir = r < 0.4 ? -1 : r < 0.8 ? 1 : 0;
+    }
+    S.actual[f] = S.realDir;
+    // 2) 确认到达：远端第 g = f-D 帧的真实输入现在才到本地
+    const g = f - D;
+    if (g >= 0) {
+      const rec = recOf(g);
+      S.confirmed++;
+      if (rec && rec.predDir !== S.actual[g]) {
+        S.wrong++;
+        S.rollbacks++;
+        S.rbFrames += f - g;                    // 回滚并重放的帧数 = 当前帧 - 误预测帧
+        replayFrom(g, S.frame);
+        S.lastRb = { g, depth: f - g, at: f };
+        S.rbEvents.push({ g, f, depth: f - g });
+        if (S.rbEvents.length > 30) S.rbEvents.shift();
+      }
+    }
+    // 3) 预测方向 = 最近一次已到达的真值（「重复上一帧输入」策略）
+    const known = f - D;
+    const predDir = known >= 0 && S.actual[known] !== undefined ? S.actual[known] : 0;
+    // 4) 本地输入（自动来回走，偶尔停下）
+    if (rng01() < 0.05) {
+      const r = rng01();
+      S.localDir = r < 0.42 ? -1 : r < 0.84 ? 1 : 0;
+    }
+    // 5) 执行本帧
+    const prev = recOf(f - 1);
+    const prevLocal = prev ? prev.localX : START;
+    const prevTruth = prev ? prev.truthX : START;
+    const prevPred = prev ? prev.predX : START;
+    const rec = {
+      f,
+      localDir: S.localDir,
+      realDir: S.realDir,
+      predDir,
+      localX: clamp(prevLocal + S.localDir * MOVE, MINX, MAXX),
+      truthX: clamp(prevTruth + S.realDir * MOVE, MINX, MAXX),
+      predX: clamp(prevPred + predDir * MOVE, MINX, MAXX)
+    };
+    S.hist.push(rec);
+    S.frame = f;
+    // 6) 限制内存（回滚窗口只需要最近若干帧）
+    while (S.hist.length > 900) {
+      S.hist.shift();
+      S.base++;
+    }
+    if (f % 60 === 0) {
+      const minKeep = f - 240;
+      for (const k in S.actual) if (+k < minKeep) delete S.actual[k];
+    }
+  }
+
+  /* ---- 绘制 ---- */
+  function wx(x) { return 22 + (x / 1000) * 996; }
+  function drawSquare(x, y, color, filled, dash) {
+    if (filled) {
+      ctx.fillStyle = color;
+      ctx.fillRect(wx(x) - 12, y - 12, 24, 24);
+    } else {
+      ctx.strokeStyle = color;
+      ctx.lineWidth = 2;
+      if (dash) ctx.setLineDash(dash);
+      ctx.strokeRect(wx(x) - 12, y - 12, 24, 24);
+      ctx.setLineDash([]);
+    }
+  }
+
+  function draw() {
+    ctx.clearRect(0, 0, W, H);
+    ctx.fillStyle = '#0a1322';
+    ctx.fillRect(0, 0, W, H);
+    const cur = recOf(S.frame);
+    // 场地
+    ctx.strokeStyle = '#1c2947';
+    ctx.font = '9.5px ui-monospace,Consolas,monospace';
+    ctx.fillStyle = '#5f7099';
+    ctx.textAlign = 'center';
+    for (let gx = 0; gx <= 1000; gx += 100) {
+      const x = wx(gx);
+      ctx.beginPath(); ctx.moveTo(x, 268); ctx.lineTo(x, 276); ctx.stroke();
+      ctx.fillText(gx, x, 288);
+    }
+    ctx.textAlign = 'left';
+    ctx.strokeStyle = '#26345a';
+    ctx.beginPath(); ctx.moveTo(wx(0), 268); ctx.lineTo(wx(1000), 268); ctx.stroke();
+
+    // 轨迹（最近 40 帧）
+    const from = Math.max(S.base, S.frame - 40);
+    for (let f = from; f <= S.frame; f++) {
+      const r = recOf(f);
+      if (!r) continue;
+      ctx.globalAlpha = 0.25 + 0.6 * ((f - from) / Math.max(1, S.frame - from));
+      ctx.fillStyle = '#6ee7a8';
+      ctx.fillRect(wx(r.truthX) - 3, 176, 6, 6);
+      ctx.fillStyle = '#ffb86b';
+      ctx.fillRect(wx(r.predX) - 3, 236, 6, 6);
+      ctx.fillStyle = '#4cc9f0';
+      ctx.fillRect(wx(r.localX) - 2, 112, 4, 4);
+    }
+    ctx.globalAlpha = 1;
+
+    // 三个角色
+    if (cur) {
+      drawSquare(cur.localX, 120, '#4cc9f0', true);
+      drawSquare(cur.truthX, 188, '#6ee7a8', true);
+      drawSquare(cur.predX, 244, '#ffb86b', false, [4, 3]);
+      const diff = Math.abs(cur.predX - cur.truthX);
+      if (diff > 2) {
+        ctx.strokeStyle = 'rgba(255,107,139,.8)';
+        ctx.setLineDash([3, 3]);
+        ctx.beginPath();
+        const y = 216;
+        ctx.moveTo(wx(cur.predX), y);
+        ctx.lineTo(wx(cur.truthX), y);
+        ctx.stroke();
+        ctx.setLineDash([]);
+        ctx.fillStyle = '#ff9db3';
+        ctx.font = '10px ui-monospace,Consolas,monospace';
+        ctx.textAlign = 'center';
+        ctx.fillText('预测误差 ' + diff.toFixed(0) + 'px', (wx(cur.predX) + wx(cur.truthX)) / 2, y - 6);
+        ctx.textAlign = 'left';
+      }
+      ctx.font = '10.5px ui-monospace,Consolas,monospace';
+      ctx.fillStyle = '#4cc9f0';
+      ctx.fillText('本地（立即响应）', 22, 96);
+      ctx.fillStyle = '#6ee7a8';
+      ctx.fillText('对手真值（客户端暂时看不到）', 22, 164);
+      ctx.fillStyle = '#ffb86b';
+      ctx.fillText('对手预测位置（用于渲染）', 22, 232);
+    } else {
+      ctx.fillStyle = '#8a96b8';
+      ctx.font = '12px system-ui,"Microsoft YaHei",sans-serif';
+      ctx.fillText('点「运行」开始：本地立即执行，远端输入按 RTT 延迟到达，猜错就回滚重放。', 26, 120);
+    }
+
+    drawStrip();
+    drawSummary();
+  }
+
+  function drawStrip() {
+    const Y0 = 314;
+    ctx.fillStyle = 'rgba(13,22,40,.6)';
+    ctx.fillRect(12, 298, 1016, 122);
+    ctx.font = '600 12px system-ui,"Microsoft YaHei",sans-serif';
+    ctx.fillStyle = '#c9d5f8';
+    ctx.fillText('逐帧输入对照（最近 48 帧）', 26, 314);
+    ctx.font = '9.5px ui-monospace,Consolas,monospace';
+    ctx.fillStyle = '#8a96b8';
+    ctx.fillText('本地输入', 26, 338);
+    ctx.fillText('远端真实', 26, 364);
+    ctx.fillText('远端预测', 26, 390);
+    const f0 = Math.max(0, S.frame - 47);
+    const cols = Math.max(1, S.frame - f0 + 1);
+    const X0 = 92, CW = Math.min(18.5, (1008 - X0) / cols);
+    const D = S.delayFrames;
+    const arrow = (x, y, dir, color) => {
+      ctx.fillStyle = color;
+      ctx.font = '11px ui-monospace,Consolas,monospace';
+      ctx.textAlign = 'center';
+      ctx.fillText(dir > 0 ? '▶' : dir < 0 ? '◀' : '·', x, y);
+      ctx.textAlign = 'left';
+    };
+    for (let f = f0; f <= S.frame; f++) {
+      const r = recOf(f);
+      if (!r) continue;
+      const x = X0 + (f - f0) * CW + CW / 2;
+      // 确认状态背景
+      const known = f <= S.frame - D;
+      if (!known) {
+        ctx.fillStyle = 'rgba(255,184,107,.07)';
+        ctx.fillRect(x - CW / 2 + 1, 324, CW - 2, 82);
+      }
+      // 误预测标红
+      if (known && S.actual[f] !== undefined && r.predDir !== S.actual[f]) {
+        ctx.fillStyle = 'rgba(255,107,139,.20)';
+        ctx.fillRect(x - CW / 2 + 1, 324, CW - 2, 82);
+      }
+      if (f === S.frame) {
+        ctx.strokeStyle = 'rgba(76,201,240,.7)';
+        ctx.strokeRect(x - CW / 2 + 1, 322, CW - 2, 86);
+      }
+      arrow(x, 338, r.localDir, '#4cc9f0');
+      if (known && S.actual[f] !== undefined) arrow(x, 364, S.actual[f], '#6ee7a8');
+      arrow(x, 390, r.predDir, '#ffb86b');
+    }
+    // 预测窗口标注
+    if (S.frame > D && D > 0) {
+      const xa = X0 + (S.frame - D + 1 - f0) * CW;
+      const xb = X0 + (S.frame - f0 + 1) * CW;
+      ctx.strokeStyle = 'rgba(255,184,107,.7)';
+      ctx.setLineDash([3, 3]);
+      ctx.strokeRect(xa, 322, Math.max(0, xb - xa), 86);
+      ctx.setLineDash([]);
+      ctx.fillStyle = '#ffb86b';
+      ctx.font = '9.5px ui-monospace,Consolas,monospace';
+      ctx.fillText('预测中（未知 ' + D + ' 帧）', Math.min(xa, 1008 - 110), 308);
+    }
+    // 最近回滚区间
+    if (S.lastRb && S.frame - S.lastRb.g < 120) {
+      const gx = X0 + (S.lastRb.g - f0) * CW;
+      const fx = X0 + (S.lastRb.f - f0 + 1) * CW;
+      const age = S.frame - S.lastRb.f;
+      ctx.fillStyle = 'rgba(255,107,139,' + Math.max(0, 0.18 - age * 0.0015) + ')';
+      ctx.fillRect(Math.max(92, gx), 322, Math.max(0, Math.min(1008, fx) - Math.max(92, gx)), 86);
+    }
+  }
+
+  function drawSummary() {
+    const wrongRate = S.confirmed > 0 ? (S.wrong / S.confirmed) * 100 : 0;
+    ctx.font = '11px ui-monospace,Consolas,monospace';
+    ctx.fillStyle = '#8a96b8';
+    ctx.fillText('预测提前量 D = RTT/2 ≈ ' + S.delayFrames + ' 帧；已执行 ' + (S.frame + 1) +
+      ' 帧，确认 ' + S.confirmed + ' 帧，误预测 ' + S.wrong + ' 帧（' + wrongRate.toFixed(1) + '%）',
+      26, 428);
+  }
+
+  function updateStats() {
+    const wrongRate = S.confirmed > 0 ? (S.wrong / S.confirmed) * 100 : 0;
+    setT('rbFrame', String(S.frame + 1));
+    setT('rbWrong', String(S.wrong));
+    setT('rbRate', wrongRate.toFixed(1) + ' %');
+    setT('rbRb', String(S.rollbacks));
+    setT('rbRbf', String(S.rbFrames));
+    const depth = S.rollbacks > 0 ? S.rbFrames / S.rollbacks : 0;
+    setT('rbDepth', depth.toFixed(1) + ' 帧');
+    setT('rbLead', S.delayFrames + ' 帧 / ' + Math.round(S.delayFrames * 1000 / 60) + ' ms');
+    const chip = $('#rbState');
+    chip.textContent = S.playing ? '运行中' : '已暂停';
+    chip.className = 'chip ' + (S.playing ? 'g' : '');
+    if (S.lastRb) {
+      setT('rbLastRollback', '第 ' + S.lastRb.g + ' 帧误预测 → 回滚 ' + S.lastRb.depth + ' 帧');
+      // 回滚深度条：以 10 帧窗口为满刻度（格斗游戏常见窗口 7–10 帧）
+      $('#rbRollbackBar').style.width = clamp((S.lastRb.depth / 10) * 100, 5, 100) + '%';
+    } else {
+      setT('rbLastRollback', '最近回滚：—');
+      $('#rbRollbackBar').style.width = '0%';
+    }
+    const conc = $('#rbConc');
+    if (conc) {
+      if (S.confirmed === 0) {
+        conc.textContent = '点「运行」：橙色幽灵（预测）与绿色方块（真值）的差异会显示在这里。';
+      } else if (S.wrong === 0) {
+        conc.textContent = '前 ' + S.confirmed + ' 帧全部预测正确 —— 对手输入没有变化时，「重复上一帧」就是完美预测。';
+      } else {
+        conc.textContent = '已确认 ' + S.confirmed + ' 帧，猜错 ' + S.wrong + ' 帧，触发 ' + S.rollbacks +
+          ' 次回滚，累计重放 ' + S.rbFrames + ' 帧；每次回滚深度 = 当前帧 − 误预测帧 ≈ RTT/2。';
+      }
+    }
+  }
+
+  const ticker = makeTicker((dt) => {
+    if (S.playing) {
+      S.acc += dt;
+      let guard = 0;
+      while (S.acc >= 1000 / 60 && guard++ < 8) {
+        S.acc -= 1000 / 60;
+        stepFrame();
+      }
+    }
+    draw();
+    updateStats();
+  });
+  enters.rollback = () => ticker.start();
+  leaves.rollback = () => { ticker.stop(); S.playing = false; $('#rbRun').textContent = '▶ 运行'; };
+
+  $('#rbRun').addEventListener('click', () => {
+    S.playing = !S.playing;
+    $('#rbRun').textContent = S.playing ? '⏸ 暂停' : '▶ 运行';
+  });
+  $('#rbStep').addEventListener('click', () => {
+    S.playing = false;
+    $('#rbRun').textContent = '▶ 运行';
+    stepFrame();
+    draw(); updateStats();
+  });
+  $('#rbReset').addEventListener('click', reset);
+  $('#rbChange').addEventListener('input', (e) => setT('rbChangeV', e.target.value + ' %'));
+  $('#rbRtt').addEventListener('input', (e) => {
+    setT('rbRttV', e.target.value + ' ms');
+    S.delayFrames = delayFramesFromRtt(+e.target.value);
+    setT('rbLead', S.delayFrames + ' 帧 / ' + Math.round(S.delayFrames * 1000 / 60) + ' ms');
+  });
+
+  reset();
+  ticker.start();
+};
+
+/* ============================================================================
+   十一、模块 ⑧ 自测题 + 术语速查
+   ========================================================================== */
+mounts.quiz = function () {
+  const TAG_NAME = {
+    lockstep: '帧同步', determinism: '确定性', catchup: '追帧',
+    statesync: '状态同步', bandwidth: '带宽', rollback: '回滚'
+  };
+  const TAG_ADVICE = {
+    lockstep: '「帧同步流水线」：把延迟和丢包拉高，看等帧与冗余补帧怎么发生。',
+    determinism: '「确定性实验」：逐帧单步，看 float 的哈希在哪一帧第一次变红。',
+    catchup: '「追帧与断线重连」：改落后帧数与倍速，观察追上所需的真实时间。',
+    statesync: '「状态同步」：开关预测 / 校正 / 插值，对比画面延迟与回弹。',
+    bandwidth: '「带宽对比」：拖实体数与 tick 率，确认锁步带宽与实体数无关。',
+    rollback: '「回滚重放」：把对手输入变化率调高，看误预测率与回滚深度。'
+  };
+
+  const QUESTIONS = [
+    {
+      q: '帧同步服务器存在的「唯一必要理由」是下面哪一项？',
+      opts: ['计算权威物理，再把状态广播给客户端', '收齐同一帧所有玩家的输入并广播该帧的输入集合', '负责渲染并下发画面帧', '压缩快照以节省带宽'],
+      a: 1, tag: 'lockstep',
+      exp: '帧同步中每个客户端自己跑逻辑，服务器只需归并输入、补齐缺失、广播帧输入集合（顺带做哈希校验/重连快照）。算权威逻辑是状态同步的职责。'
+    },
+    {
+      q: '输入包为什么要携带「最近 N 帧的冗余输入」？',
+      opts: ['为了让包更大，方便压缩', '因为 UDP 会丢包，用后续包补回缺失帧，避免整房间等帧', '为了加密输入', '为了让服务器验证作弊'],
+      a: 1, tag: 'lockstep',
+      exp: '帧同步不能丢输入。冗余帧让后续包自动补上前面丢掉的帧；代价是带宽线性上升，但通常仍远小于状态同步。'
+    },
+    {
+      q: '3 人帧同步房里，客户端 C 上行延迟明显更高，结果是什么？',
+      opts: ['只有 C 自己卡，A/B 照常', 'A/B 会一直等 C 的输入，全房间周期性卡顿', '服务器自动把 C 踢出并让 A/B 继续', '帧率自动降到 C 的速度，但画面仍然流畅'],
+      a: 1, tag: 'lockstep',
+      exp: '服务器必须等所有玩家同一帧的输入到齐才广播。C 晚到，服务器就不推进，A/B 也跟着停 —— 这就是「最慢的人决定所有人」。'
+    },
+    {
+      q: '帧同步对确定性的要求属于哪一级？',
+      opts: ['语义一致（位置误差 < 1 cm 即可）', '逐位一致（bit-exact）', '只要最终画面看起来差不多', '只需要服务器和客户端大致相同'],
+      a: 1, tag: 'determinism',
+      exp: '误差会随帧数累积并放大，最终导致分叉。帧同步要求同样的输入得到逐字节相同的状态，才能用哈希比对、才能只传输入。'
+    },
+    {
+      q: '下面哪种做法最可能引入跨平台 desync？',
+      opts: ['用 Q16.16 整数做物理运算', '在不同平台调用各自的 sin/cos/atan2 等数学库', '用固定 dt 和固定随机种子', '每帧对状态做哈希上报'],
+      a: 1, tag: 'determinism',
+      exp: 'IEEE 基本运算（+−×÷√）是正确舍入的，但 sin/cos/atan2 等超越函数实现不保证逐位一致；不同 libm 差 1 ulp 就够在几百帧后分叉。'
+    },
+    {
+      q: 'Q16.16 里「1.0」对应的原始整数是？',
+      opts: ['1', '16', '65536', '32768'],
+      a: 2, tag: 'determinism',
+      exp: 'Q16.16 用低 16 位表示小数：1.0 = 1 << 16 = 65536；分辨率是 1/65536 ≈ 1.53×10⁻⁵。'
+    },
+    {
+      q: '用整数实现 Q16.16 的 sqrt(x)，常见做法是？',
+      opts: ['isqrt(x << 16)（整数开方）', 'Math.sqrt(x) 后取整', '查一次浮点表再插值', '直接 x >> 8'],
+      a: 0, tag: 'determinism',
+      exp: 'sqrt(Q16.16) 等价于对 (x<<16) 做整数平方根，全程整数运算、天然确定；Math.sqrt 是浮点路径，不同平台可能不一致。'
+    },
+    {
+      q: '状态同步中，一个快照包丢失了通常后果大吗？',
+      opts: ['很大，必须立刻重传否则世界错乱', '影响很小，下一份快照会覆盖', '会导致所有人掉线', '必须回滚到上一帧重算'],
+      a: 1, tag: 'statesync',
+      exp: '状态快照是幂等的「当前值」，丢一份就等下一份覆盖 —— 这正是状态同步抗丢包、不需要每帧可靠传输的原因。'
+    },
+    {
+      q: '开着插值缓冲渲染远端实体，代价是什么？',
+      opts: ['带宽显著增加', '画面更平滑，但显示的是更久以前的状态（额外延迟）', '服务器计算量增加', '客户端需要回滚重放'],
+      a: 1, tag: 'statesync',
+      exp: '插值在两个已知快照之间平滑过渡，必须等后一个快照到货，因此渲染时间被刻意推后一个缓冲周期（常见 2 tick），平滑换延迟。'
+    },
+    {
+      q: '回滚重放（Rollback）的主要成本是？',
+      opts: ['额外带宽', 'CPU 回滚与重放的算力（与回滚窗口、误预测率相关）', '服务器存储', '更高的 RTT'],
+      a: 1, tag: 'rollback',
+      exp: 'Rollback 用 CPU 换延迟：每次误预测都要回滚窗口内重放。窗口越大、误预测率越高，CPU 成本越高，所以格斗游戏通常把窗口限制在 7–10 帧。'
+    }
+  ];
+
+  const TERMS = [
+    ['帧同步', 'Lockstep', '只同步输入，各端跑同一套确定性逻辑，状态天然一致'],
+    ['状态同步', 'State Synchronization', '服务器算权威状态，客户端发输入、收快照渲染'],
+    ['确定性', 'Determinism', '同样初始状态 + 同样输入序列 = 逐位相同的结果'],
+    ['逐位一致', 'Bit-exact', '状态序列化后逐字节相同，帧同步的硬要求'],
+    ['定点数', 'Fixed-point Number', '用整数表示小数，避免浮点跨平台差异'],
+    ['Q16.16', 'Q16.16 Format', '32 位有符号定点数，低 16 位是小数，1.0 = 65536'],
+    ['状态哈希', 'State Hash / Checksum', '对模拟状态做整数哈希，用于逐帧比对 desync'],
+    ['等帧', 'Stall / Hiccup', '输入没到齐导致整房间暂停推进'],
+    ['冗余帧', 'Redundant Frames', '输入包携带最近 N 帧输入，用于补丢包'],
+    ['输入提前量', 'Input Delay / Lead', '输入提前若干帧发出，用延迟换抗抖动'],
+    ['追帧', 'Catch-up', '连续执行已知帧、不渲染中间帧，快速追上服务器'],
+    ['全量快照', 'Full Snapshot', '发送所有实体的完整状态，重连/增量失效时使用'],
+    ['增量快照', 'Delta Snapshot', '相对客户端已确认 baseline 的字段差分'],
+    ['基线', 'Baseline / Ack', '客户端已确认收到的快照版本，增量编码的参照物'],
+    ['脏标记', 'Dirty Flags', '服务器记录本帧发生变化的实体/字段'],
+    ['兴趣管理', 'AOI (Area of Interest)', '只给客户端发送它视野内的实体'],
+    ['客户端预测', 'Client-side Prediction', '本地立即应用自己的输入，不等服务器确认'],
+    ['服务器校正', 'Server Reconciliation', '用权威快照修正预测误差（回正/回弹）'],
+    ['插值缓冲', 'Interpolation Buffer', '在快照之间平滑插值，平滑但增加延迟'],
+    ['回滚重放', 'Rollback', '先预测对方输入，收到真值后回滚重放'],
+    ['回滚窗口', 'Rollback Window', '最多能回退重放的帧数（常见 7–10 帧）'],
+    ['误预测', 'Misprediction', '预测的对方输入与真实输入不一致'],
+    ['影子模拟', 'Shadow Simulation', '服务器跑同一份逻辑用于哈希校验/反作弊'],
+    ['托管输入', 'Input Takeover', '玩家输入超时未到，服务器替它填一个确定值'],
+    ['逻辑帧 / 渲染帧', 'Logic Frame / Render Frame', '逻辑帧固定步长推进，渲染帧可与逻辑帧解耦'],
+    ['权威服务器', 'Authoritative Server', '只有服务器拥有状态的最终解释权'],
+    ['事件流', 'Event Stream', '只发「发生了什么」（开火/命中），一次性、可丢即失效'],
+    ['往返时延', 'RTT (Round-Trip Time)', '一个包往返所需时间，决定预测提前量与回滚窗口']
+  ];
+
+  const state = { answered: {}, score: 0, total: QUESTIONS.length };
+
+  function renderQuestions() {
+    const box = $('#quizList');
+    box.innerHTML = QUESTIONS.map((q, i) => `
+      <div class="quiz-q" data-i="${i}">
+        <div class="qt">${i + 1}. ${q.q}<span class="tag">${TAG_NAME[q.tag]}</span></div>
+        <div class="opts">
+          ${q.opts.map((o, j) => `<button type="button" data-j="${j}">${String.fromCharCode(65 + j)}. ${o}</button>`).join('')}
+        </div>
+      </div>`).join('');
+  }
+
+  function onClick(e) {
+    const btn = e.target.closest ? e.target.closest('button[data-j]') : null;
+    if (!btn) return;
+    const qEl = btn.closest('.quiz-q');
+    if (!qEl) return;
+    const qi = +qEl.dataset.i;
+    if (state.answered[qi] !== undefined) return;
+    const chosen = +btn.dataset.j;
+    const q = QUESTIONS[qi];
+    state.answered[qi] = chosen;
+    const ok = chosen === q.a;
+    if (ok) state.score++;
+    $$('.opts button', qEl).forEach((b, j) => {
+      b.classList.toggle('ok', j === q.a);
+      b.classList.toggle('bad', j === chosen && !ok);
+    });
+    const fb = document.createElement('div');
+    fb.className = 'qfb ' + (ok ? 'ok' : 'bad');
+    fb.innerHTML = (ok ? '✓ 正确。' : '✗ 正确答案是 ' + String.fromCharCode(65 + q.a) + '。') + q.exp;
+    qEl.appendChild(fb);
+    updateScore();
+    const total = Object.keys(state.answered).length;
+    if (total === state.total) showAdvice();
+  }
+
+  function updateScore() {
+    setT('quizScore', String(state.score));
+    setT('quizTotal', '/ ' + state.total);
+  }
+
+  function showAdvice() {
+    const wrongTags = [];
+    QUESTIONS.forEach((q, i) => {
+      if (state.answered[i] !== q.a) wrongTags.push(q.tag);
+    });
+    const box = $('#quizAdvice');
+    const pct = Math.round((state.score / state.total) * 100);
+    let level = pct >= 90 ? '优秀：概念与取舍都掌握了。' :
+      pct >= 70 ? '不错：主干清楚，个别细节还需要回炉。' :
+      pct >= 50 ? '及格：建议按下面的薄弱点回对应模块再走一遍。' :
+      '需要重学：先用「两条路线总览」建立地图，再逐模块动手。';
+    let html = '<b>得分 ' + state.score + ' / ' + state.total + '（' + pct + '%）</b> · ' + level;
+    if (wrongTags.length === 0) {
+      html += '<br>全对。下一步：去「带宽对比」把实体数拉到 500，自己算一遍全量与增量的大小关系。';
+    } else {
+      const uniq = Array.from(new Set(wrongTags));
+      html += '<br><b>薄弱点与建议：</b><br>' + uniq.map((t) =>
+        '· <span class="tag ' + (t === 'determinism' ? 'o' : 'c') + '">' + TAG_NAME[t] + '</span> ' +
+        TAG_ADVICE[t]).join('<br>');
+    }
+    box.innerHTML = html;
+  }
+
+  $('#quizReset').addEventListener('click', () => {
+    state.answered = {}; state.score = 0;
+    updateScore();
+    renderQuestions();
+    $$('#quizList .quiz-q').forEach((q) => q.classList.remove('done'));
+    const box = $('#quizAdvice');
+    box.textContent = '完成全部 10 题后，这里给出薄弱点建议。';
+  });
+
+  /* 术语速查 */
+  function renderGloss(filter) {
+    const t = (filter || '').trim().toLowerCase();
+    const rows = TERMS.filter((x) => !t ||
+      (x[0] + x[1] + x[2]).toLowerCase().includes(t));
+    $('#glossBody').innerHTML = rows.map((x) =>
+      '<tr><td>' + x[0] + '</td><td class="mono">' + x[1] + '</td><td>' + x[2] + '</td></tr>').join('');
+    setT('glossCount', rows.length + ' / ' + TERMS.length + ' 个术语');
+  }
+  $('#glossFilter').addEventListener('input', (e) => renderGloss(e.target.value));
+
+  state.score = 0;
+  renderQuestions();
+  $('#quizList').addEventListener('click', onClick);
+  updateScore();
+  renderGloss('');
+};
+
+/* ============================================================================
+   十二、启动（hash 直达，刷新后停留）
+   ========================================================================== */
+const _initial = (location.hash || '#overview').slice(1);
+showPage(_initial, false);
+
+
+})();
+</script>
+</body>
+</html>

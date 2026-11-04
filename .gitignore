@@ -1,0 +1,19 @@
+# 操作系统与编辑器产生的噪音
+Thumbs.db
+Desktop.ini
+.DS_Store
+.vscode/
+.idea/
+*.swp
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# 过程产物与临时文件
+.tmp/
+.tmp-*/
+*.log
+*.tmp
